@@ -1,5 +1,6 @@
 package com.cts.connectease.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -8,8 +9,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "Services")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Table(name = "services")
+@Getter @Setter  @NoArgsConstructor @AllArgsConstructor @Builder
 public class ServiceEntity {
 
     @Id
@@ -20,6 +21,7 @@ public class ServiceEntity {
     // ON DELETE SET NULL handled by making it nullable and omitting CascadeType.REMOVE
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "ratings", "services"})
     private User vendor;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -40,7 +42,7 @@ public class ServiceEntity {
     private BigDecimal price = BigDecimal.ZERO;
 
     @Column(name = "total_views")
-    private Integer totalViews = 0;
+    private Long totalViews = 0L;
 
     @CreationTimestamp
     @Column(name = "created_at")
@@ -51,6 +53,7 @@ public class ServiceEntity {
     private List<ServiceImages> images;
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("service")
     private List<Rating> ratings;
 
     // Handles Service_Features_Map table (ON DELETE CASCADE is handled by Hibernate auto-DDL here)

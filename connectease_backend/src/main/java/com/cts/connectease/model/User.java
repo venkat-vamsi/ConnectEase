@@ -31,12 +31,12 @@ public class User {
     private String image;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "ENUM('customer', 'vendor', 'admin') DEFAULT 'customer'")
+    @Column(columnDefinition = "ENUM('customer', 'vendor') DEFAULT 'customer'")
     private Role role;
 
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    public enum Role { customer, vendor, admin }
+    public enum Role { customer, vendor }
 }
