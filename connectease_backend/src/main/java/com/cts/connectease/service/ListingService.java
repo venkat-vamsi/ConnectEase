@@ -3,7 +3,6 @@ package com.cts.connectease.service;
 import com.cts.connectease.dto.ListingCardDTO;
 import com.cts.connectease.model.ServiceEntity;
 import com.cts.connectease.repository.ServiceRepository;
-import com.cts.connectease.repository.ServiceSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
