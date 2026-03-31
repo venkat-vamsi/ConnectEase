@@ -71,7 +71,7 @@ public class ChatService {
         message.setSender(sender);
         message.setContent(request.getContent());
 
-        // ADD THIS LINE: Manually stamp the time right now!
+        //Manually stamp the time right now!
         message.setCreatedAt(LocalDateTime.now());
 
         ChatMessage savedMsg = messageRepo.save(message);

@@ -23,7 +23,7 @@ public class ChatMessage {
     private ChatSession session;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id") // ON DELETE SET NULL managed implicitly
+    @JoinColumn(name = "sender_id")
     private User sender;
 
     @Column(columnDefinition = "TEXT", nullable = false)

@@ -1,4 +1,4 @@
-package com.cts.connectease.repository;
+package com.cts.connectease.service;
 
 import com.cts.connectease.model.Rating;
 import com.cts.connectease.model.ServiceEntity;
