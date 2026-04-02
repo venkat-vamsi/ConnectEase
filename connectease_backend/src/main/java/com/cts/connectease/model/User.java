@@ -34,6 +34,8 @@ public class User {
     @Column(columnDefinition = "ENUM('customer', 'vendor') DEFAULT 'customer'")
     private Role role;
 
+
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;

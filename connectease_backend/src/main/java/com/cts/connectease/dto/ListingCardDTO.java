@@ -12,4 +12,5 @@ public class ListingCardDTO {
     private String categoryName;
     private String city;
     private String area;
+    private String primaryImageUrl;
 }

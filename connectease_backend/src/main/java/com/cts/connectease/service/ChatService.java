@@ -84,7 +84,6 @@ public class ChatService {
         dto.setSenderImage(sender.getImage());
         dto.setContent(savedMsg.getContent());
 
-        // This will no longer crash!
         dto.setCreatedAt(savedMsg.getCreatedAt().toString());
 
         return dto;

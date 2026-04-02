@@ -5,6 +5,7 @@ import com.cts.connectease.dto.ServiceDetailsDTO; // Import the DTO
 import com.cts.connectease.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/services")
@@ -20,7 +21,14 @@ public class ProductController {
     }
 
     @PostMapping("/{sid}/reviews")
-    public String addReview(@PathVariable String sid, @RequestBody ReviewRequestDTO reviewRequest) {
+    public String addReview(@PathVariable String sid, @RequestBody ReviewRequestDTO reviewRequest, Authentication authentication) {
+        String currentUserId = authentication != null && authentication.getCredentials() != null
+                ? authentication.getCredentials().toString()
+                : null;
+
+        // Ensure the review uses the authenticated user id, ignoring any client-provided value
+        reviewRequest.setUserId(currentUserId);
+
         productService.addReview(sid, reviewRequest);
         return "Review added successfully!";
     }

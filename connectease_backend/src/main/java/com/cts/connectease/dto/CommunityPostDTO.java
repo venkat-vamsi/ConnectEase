@@ -15,6 +15,5 @@ public class CommunityPostDTO {
     private String image;
     private LocalDateTime time;
     private String authorFullName;
-
 }
 

@@ -3,6 +3,7 @@ package com.cts.connectease.service;
 import com.cts.connectease.dto.ReviewDTO;
 import com.cts.connectease.dto.ReviewRequestDTO;
 import com.cts.connectease.dto.ServiceDetailsDTO;
+import com.cts.connectease.dto.ImageDTO;
 import com.cts.connectease.model.Rating;
 import com.cts.connectease.model.ServiceEntity;
 import com.cts.connectease.model.User;
@@ -52,6 +53,17 @@ public class ProductService {
                     .collect(Collectors.toList());
         }
 
+        // Map service images to ImageDTO list for the details page
+        List<ImageDTO> imageDTOs = new ArrayList<>();
+        if (service.getImages() != null && !service.getImages().isEmpty()) {
+            imageDTOs = service.getImages().stream()
+                    .map(img -> ImageDTO.builder()
+                            .url(img.getUrl())
+                            .isPrimary(img.getIsPrimary() != null ? img.getIsPrimary() : Boolean.FALSE)
+                            .build())
+                    .collect(Collectors.toList());
+        }
+
         return ServiceDetailsDTO.builder()
                 .sid(service.getSid())
                 .name(service.getName())
@@ -61,6 +73,7 @@ public class ProductService {
                 .vendorName(service.getVendor() != null ? service.getVendor().getFullName() : "Unknown")
                 .averageRating(Math.round(avgRating * 10.0) / 10.0)
                 .reviews(reviewDTOs)
+                .images(imageDTOs)
                 .build();
     }
 

@@ -60,6 +60,16 @@ public class ListingService {
             dto.setCity(entity.getLocation().getCity());
             dto.setArea(entity.getLocation().getArea());
         }
+        // Determine primary image URL: prefer image with isPrimary==true, else first image, else null
+        String primaryUrl = null;
+        if (entity.getImages() != null && !entity.getImages().isEmpty()) {
+            primaryUrl = entity.getImages().stream()
+                    .filter(img -> img.getIsPrimary() != null && img.getIsPrimary())
+                    .map(img -> img.getUrl())
+                    .findFirst()
+                    .orElse(entity.getImages().get(0).getUrl());
+        }
+        dto.setPrimaryImageUrl(primaryUrl);
         return dto;
     }
 }

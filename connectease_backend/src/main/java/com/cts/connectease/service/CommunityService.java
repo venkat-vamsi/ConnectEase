@@ -6,6 +6,7 @@ import com.cts.connectease.model.CommunityPost;
 import com.cts.connectease.repository.CommunityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,6 +17,7 @@ public class CommunityService {
     @Autowired
     private CommunityRepository communityRepository;
 
+    @Transactional(readOnly = true)
     public List<CommunityPostDTO> getAllPosts() {
         return communityRepository.findAll()
                 .stream()

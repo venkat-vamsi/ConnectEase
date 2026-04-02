@@ -3,6 +3,7 @@ package com.cts.connectease.controller;
 import com.cts.connectease.dto.ChatSessionResponse;
 import com.cts.connectease.dto.ChatMessageDto;
 import com.cts.connectease.dto.SendMessageRequest;
+import com.cts.connectease.model.ChatMessage;
 import com.cts.connectease.service.ChatService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -11,6 +12,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @CrossOrigin(origins = "*") // Allows Angular to call this API
@@ -30,11 +32,11 @@ public class ChatController {
     @GetMapping("/api/chat/start/{vendorId}")
     public ResponseEntity<ChatSessionResponse> openChatWindow(
             @PathVariable String vendorId,
-            Principal principal) {
+            Authentication authentication) {
 
-        // For testing without security enabled yet, you might need to hardcode a user ID here temporarily.
-        // Once JWT is set up, principal.getName() will safely grab the logged-in user's ID.
-        String currentUserId = principal != null ? principal.getName() : "user-123";
+        String currentUserId = authentication != null && authentication.getCredentials() != null
+                ? authentication.getCredentials().toString()
+                : null;
 
         ChatSessionResponse sessionData = chatService.getOrInitializeChat(currentUserId, vendorId);
         return ResponseEntity.ok(sessionData);
@@ -42,8 +44,10 @@ public class ChatController {
 
     // STEP 2: Angular sends live messages here via WebSockets
     @MessageMapping("/chat.sendMessage")
-    public void receiveAndBroadcastMessage(@Payload SendMessageRequest request, Principal principal) {
-        String senderId = principal != null ? principal.getName() : "user-123";
+    public void receiveAndBroadcastMessage(@Payload SendMessageRequest request, Authentication authentication) {
+        String senderId = authentication != null && authentication.getCredentials() != null
+                ? authentication.getCredentials().toString()
+                : null;
 
         // Save to Database
         ChatMessageDto savedMessage = chatService.saveMessage(senderId, request);

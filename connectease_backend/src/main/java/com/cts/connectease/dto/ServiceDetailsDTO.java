@@ -3,6 +3,7 @@ package com.cts.connectease.dto;
 import lombok.*;
 import java.math.BigDecimal;
 import java.util.List;
+import com.cts.connectease.dto.ImageDTO;
 
 @Data
 @NoArgsConstructor
@@ -17,4 +18,5 @@ public class ServiceDetailsDTO {
     private String vendorName;
     private double averageRating; // Added
     private List<ReviewDTO> reviews; // Added
+    private List<ImageDTO> images;
 }
