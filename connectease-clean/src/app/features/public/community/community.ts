@@ -16,7 +16,7 @@ export class CommunityComponent implements OnInit {
   activeCategory = 'All Posts';
 
   ngOnInit() {
-    this.http.get<any[]>('/api/community/posts').subscribe({
+    this.http.get<any[]>('/api/community').subscribe({
       next: (res) => this.posts = res,
       error: () => {
         this.posts = [{

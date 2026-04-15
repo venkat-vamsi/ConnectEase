@@ -25,7 +25,7 @@ export class LoginComponent {
     if (this.loginForm.valid) {
       this.authService.login(this.loginForm.value).subscribe({
         next: (res) => {
-          if (res.status === 'success') this.router.navigate(['/services']);
+          if (res.status === 'success') this.router.navigate(['/']);
         },
         error: () => this.errorMessage = 'Invalid email or password'
       });

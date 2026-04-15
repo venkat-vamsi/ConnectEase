@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
 
 @Component({
@@ -11,5 +11,17 @@ import { AuthService } from '../../core/services/auth';
 })
 export class NavbarComponent {
   authService = inject(AuthService);
-  logout() { this.authService.logout().subscribe(); }
+  private router = inject(Router);
+
+  // Checks if the logged-in user is a vendor
+  isVendor(): boolean {
+    return localStorage.getItem('role') === 'vendor';
+  }
+
+  logout() {
+    this.authService.logout().subscribe(() => {
+      localStorage.clear();
+      this.router.navigate(['/login']);
+    });
+  }
 }

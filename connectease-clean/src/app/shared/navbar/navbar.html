@@ -7,10 +7,13 @@
     </div>
   </div>
   <div class="nav-links">
-    <a routerLink="/services">Find Services</a>
-    <a routerLink="/vendor/dashboard">For Vendors</a>
-    <a routerLink="/community">Community</a>
-  </div>
+  <a routerLink="/services">Find Services</a>
+  <a routerLink="/community">Community</a>
+  
+  @if (isVendor()) {
+    <a routerLink="/vendor/dashboard">Vendor Studio</a>
+  }
+</div>
   <div class="nav-actions">
     <button class="btn-emergency"><span>!</span> Emergency</button>
     <div class="profile-menu" routerLink="/login"><div class="profile-icon">👤</div></div>
