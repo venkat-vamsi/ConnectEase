@@ -1,0 +1,27 @@
+<div class="community-container">
+  <div class="text-center">
+    <h1>Real Stories from Chennai Migrants</h1>
+    <p>Discover authentic experiences shared by people who moved to Chennai.</p>
+  </div>
+  <div class="filter-pills">
+    <span>♈ Filter:</span>
+    @for (cat of categories; track cat) {
+      <button class="pill" [class.active]="activeCategory === cat" (click)="filter(cat)">{{ cat }}</button>
+    }
+  </div>
+  <div class="posts-grid">
+    @for (post of posts; track post.postId) {
+      <div class="post-card">
+        <div class="post-image"><span class="category-tag">Experience</span></div>
+        <div class="post-content">
+          <div class="author-info">
+            <div class="avatar">{{ post.authorFullName.charAt(0) }}</div>
+            <div><h4>{{ post.authorFullName }}</h4><span class="date">{{ post.time | date:'mediumDate' }}</span></div>
+          </div>
+          <h3 class="post-title">{{ post.title }}</h3>
+          <p class="post-desc">{{ post.description }}</p>
+        </div>
+      </div>
+    }
+  </div>
+</div>

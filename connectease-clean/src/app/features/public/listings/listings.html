@@ -1,0 +1,41 @@
+<div class="page-header">
+  <div class="icon-title">🏠</div>
+  <div>
+    <h1>{{ categoryName }}</h1>
+    <p>{{ services.length }} services available</p>
+  </div>
+</div>
+<div class="search-filter-bar">
+  <input type="text" placeholder="Search services...">
+  <button class="btn-outline">⚙️ Filters</button>
+</div>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="filter-group">
+      <label>Sort By</label>
+      <select><option>Relevance</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Price Range</label>
+      <input type="range" min="0" max="20000">
+    </div>
+  </aside>
+  <main class="grid">
+    @for (srv of services; track srv.sid) {
+      <div class="card" [routerLink]="['/services', srv.sid]">
+        <div class="card-img">
+          @if (srv.verified) { <span class="badge-verified">✓ Verified</span> }
+          <span class="badge-trust">🛡️ {{ srv.trustScore }}%</span>
+        </div>
+        <div class="card-body">
+          <div class="title-price">
+            <h3>{{ srv.name }}</h3>
+            <div class="price">₹{{ srv.price }}<span>/month</span></div>
+          </div>
+          <p class="location">📍 {{ srv.location }}</p>
+          <div class="rating">⭐ {{ srv.rating }} <span class="reviews">({{ srv.reviews }} reviews)</span></div>
+        </div>
+      </div>
+    }
+  </main>
+</div>

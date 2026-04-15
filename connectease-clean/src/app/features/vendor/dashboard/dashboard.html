@@ -1,0 +1,79 @@
+<div class="dash-layout">
+  <aside class="sidebar">
+    <div class="profile-badge">VS</div>
+    <h3>Vendor Studio</h3>
+    <p class="sub-text">Manage your services</p>
+    
+    <nav class="nav-menu">
+      <a class="active">Dashboard</a>
+      <a>My Listings</a>
+      <a>Reviews</a>
+      <a>Analytics</a>
+    </nav>
+  </aside>
+
+  <main class="dash-content">
+    <div class="dash-header">
+      <div>
+        <h1>Dashboard</h1>
+        <p>Welcome back! Here's your performance overview.</p>
+      </div>
+      <button class="btn-primary">+ Add New Service</button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon bg-orange">⭐</div>
+        <h2>{{ stats.trustScore }}%</h2>
+        <p>Trust Score</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-blue">👁️</div>
+        <h2>{{ stats.totalViews }}</h2>
+        <p>Total Views</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-green">📋</div>
+        <h2>{{ stats.activeListings }}</h2>
+        <p>Active Listings</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-purple">💬</div>
+        <h2>{{ stats.totalReviews }}</h2>
+        <p>Total Reviews</p>
+      </div>
+    </div>
+
+    <div class="bottom-grid">
+      <div class="card">
+        <h3>Performance Metrics</h3>
+        <div class="metric-group">
+          <div class="metric-label"><span>Response Rate</span><span>{{ stats.responseRate }}%</span></div>
+          <div class="progress-bar"><div class="fill bg-green" [style.width.%]="stats.responseRate"></div></div>
+        </div>
+        <div class="metric-group">
+          <div class="metric-label"><span>Trust Score</span><span>{{ stats.trustScore }}%</span></div>
+          <div class="progress-bar"><div class="fill bg-purple" [style.width.%]="stats.trustScore"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Recent Activity</h3>
+        <div class="activity-item">
+          <div class="act-icon bg-orange-light">⭐</div>
+          <div>
+            <h4>New review received</h4>
+            <p>2 hours ago</p>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon bg-blue-light">👁️</div>
+          <div>
+            <h4>Profile viewed 23 times</h4>
+            <p>5 hours ago</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,25 @@
+<div class="hero-container">
+  <div class="ai-badge">✨ AI-Powered Migration Assistance in Chennai</div>
+  <h1 class="hero-title">Welcome to <br><span class="gradient-text">ConnectEase</span></h1>
+  <p class="hero-subtitle">Your trusted companion for seamless migration in Chennai. Find verified PGs, services, and connect with trusted vendors—all powered by intelligent AI.</p>
+  
+  <div class="search-wrapper">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Try: 'Find PG near OMR under 10k' or 'Need plumber in Adyar'">
+    <button class="btn-primary">Search ✨</button>
+  </div>
+  <p class="search-hint">⚡ AI will understand your needs and find the best matches</p>
+</div>
+
+<div class="categories-section">
+  <h2>Browse by Category</h2>
+  <div class="categories-grid">
+    @for (cat of categories; track cat.id) {
+      <div class="category-card" [routerLink]="['/services']" [queryParams]="{categoryId: cat.id}">
+        <div class="icon-box" [style.background]="cat.bg">{{ cat.icon }}</div>
+        <h3>{{ cat.name }}</h3>
+        <p>{{ cat.count }} services</p>
+      </div>
+    }
+  </div>
+</div>

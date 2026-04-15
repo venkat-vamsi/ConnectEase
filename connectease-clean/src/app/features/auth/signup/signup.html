@@ -1,0 +1,26 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="text-center">
+      <h2>Create an Account</h2>
+      <p>Join ConnectEase today</p>
+    </div>
+
+    @if (errorMessage) { <div class="error-box">{{ errorMessage }}</div> }
+
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+      <div class="form-group"><label>Full Name</label><input type="text" formControlName="fullName"></div>
+      <div class="form-group"><label>Email</label><input type="email" formControlName="email"></div>
+      <div class="form-group"><label>Password</label><input type="password" formControlName="password"></div>
+      <div class="form-group"><label>Phone</label><input type="text" formControlName="phoneNo"></div>
+      <div class="form-group">
+        <label>I want to:</label>
+        <select formControlName="role">
+          <option value="customer">Find Services (Customer)</option>
+          <option value="vendor">Offer Services (Vendor)</option>
+        </select>
+      </div>
+      <button type="submit" [disabled]="signupForm.invalid" class="btn-primary w-100">Sign Up</button>
+    </form>
+    <p class="switch-auth">Already have an account? <a routerLink="/login">Sign in</a></p>
+  </div>
+</div>
