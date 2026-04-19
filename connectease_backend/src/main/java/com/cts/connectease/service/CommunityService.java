@@ -35,6 +35,8 @@ public class CommunityService {
                 .title(post.getTitle())
                 .description(post.getDescription())
                 .image(post.getImage())
+                .category(post.getCategory())
+                .rating(post.getRating())
                 .time(post.getTime())
                 .authorFullName(post.getUser() != null ? post.getUser().getFullName() : "Unknown")
                 .build();
