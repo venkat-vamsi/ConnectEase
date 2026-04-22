@@ -1,0 +1,56 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="text-center">
+      <div class="logo-box">CE</div>
+      <h2>Create an Account</h2>
+      <p>Join ConnectEase today</p>
+    </div>
+
+    @if (errorMessage) { <div class="error-box">{{ errorMessage }}</div> }
+
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" placeholder="Enter your full name" formControlName="fullName">
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" placeholder="name@example.com" formControlName="email">
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" placeholder="Create a password" formControlName="password">
+      </div>
+
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" placeholder="Your phone number" formControlName="phoneNo">
+      </div>
+
+      <div class="form-group">
+        <label>Your Journey Starts As:</label>
+        <div class="role-selection-wrapper">
+          <input type="radio" id="role-customer" formControlName="role" value="customer" class="role-radio">
+          <label for="role-customer" class="role-card">
+            <span class="icon">🔍</span>
+            <span class="label-text">Customer</span>
+          </label>
+
+          <input type="radio" id="role-vendor" formControlName="role" value="vendor" class="role-radio">
+          <label for="role-vendor" class="role-card">
+            <span class="icon">💼</span>
+            <span class="label-text">Vendor</span>
+          </label>
+
+          <div class="selection-slider"></div>
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="signupForm.invalid" class="btn-primary w-100">Sign Up</button>
+    </form>
+
+    <p class="switch-auth">Already have an account? <a routerLink="/login">Sign in</a></p>
+  </div>
+</div>

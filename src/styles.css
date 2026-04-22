@@ -1,0 +1,18 @@
+:root {
+  --ce-blue: #2563EB;
+  --ce-purple: #8B5CF6;
+  --ce-bg: #F8FAFC;
+  --text-dark: #1E293B;
+  --text-light: #64748B;
+  --white: #FFFFFF;
+  --border-color: #E2E8F0;
+  --success: #10B981;
+  --danger: #EF4444;
+}
+
+body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--ce-bg); color: var(--text-dark); }
+.btn-primary { background: linear-gradient(to right, var(--ce-blue), var(--ce-purple)); color: var(--white); border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: opacity 0.2s; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.w-100 { width: 100%; }
+.mt-10 { margin-top: 10px; }

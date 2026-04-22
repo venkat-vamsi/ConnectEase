@@ -1,0 +1,66 @@
+<div class="details-container">
+  <button class="back-btn" routerLink="/services">‹ Back to Results</button>
+  
+  <div class="content-grid">
+    <div class="main-column">
+      <div class="image-gallery">
+        <div class="gallery-controls">
+          <button class="icon-btn">♡</button>
+          <button class="icon-btn">🔗</button>
+        </div>
+      </div>
+
+      <div class="header-info">
+        <div>
+          <h1>{{ service.name }} <span class="badge-verified">✓ Verified</span></h1>
+          <p class="location">📍 {{ service.location }}</p>
+        </div>
+        <div class="price-block">
+          <h2>₹{{ service.price }}</h2>
+          <p>per service</p>
+        </div>
+      </div>
+
+      <div class="ai-analysis-card">
+        <div class="ai-header">
+          <span class="robot-icon">🤖</span>
+          <div>
+            <h3>AI Analysis</h3>
+            <p>Based on {{ service.reviews }} verified reviews, our AI recommends this service for:</p>
+          </div>
+        </div>
+        <div class="ai-grid">
+          <div class="ai-item"><strong>✓ Quality & Reliability</strong><p>Consistently high ratings</p></div>
+          <div class="ai-item"><strong>✓ Value for Money</strong><p>Competitive pricing at ₹{{ service.price }}</p></div>
+          <div class="ai-item"><strong>✓ Verified Provider</strong><p>Trust score of {{ service.trustScore }}%</p></div>
+          <div class="ai-item"><strong>✓ Community Approved</strong><p>92% of users would recommend</p></div>
+        </div>
+      </div>
+
+      <div class="write-review-card">
+        <h3>Share Your Experience</h3>
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <textarea placeholder="Tell us about your experience..."></textarea>
+        <button class="btn-primary w-100">Submit Review</button>
+      </div>
+    </div>
+
+    <div class="side-column">
+      <div class="trust-card">
+        <div class="shield-icon">🛡️</div>
+        <h3>Trust Score</h3>
+        <h2 class="score-text">{{ service.trustScore }}%</h2>
+        <p class="sub-text">Based on verified reviews</p>
+        
+        <div class="stats-list">
+          <div class="stat-row"><span>Verified Status</span><span class="text-green">✓ Verified</span></div>
+          <div class="stat-row"><span>Total Reviews</span><span>{{ service.reviews }}</span></div>
+          <div class="stat-row"><span>Average Rating</span><span>{{ service.rating }}/5</span></div>
+        </div>
+
+        <button class="btn-primary w-100">📞 Contact Now</button>
+        <button class="btn-outline w-100 mt-10">✉️ Send Message</button>
+      </div>
+    </div>
+  </div>
+</div>

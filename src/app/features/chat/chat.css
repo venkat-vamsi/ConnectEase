@@ -1,0 +1,9 @@
+.chat-widget { position: fixed; bottom: 20px; right: 20px; width: 340px; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; z-index: 1000; }
+.chat-header { background: var(--ce-blue); color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+.close-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; line-height: 1; }
+.chat-body { height: 320px; padding: 15px; overflow-y: auto; background: var(--ce-bg); display: flex; flex-direction: column; gap: 10px; }
+.msg-bubble { background: white; padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+.empty-chat { text-align: center; color: var(--text-light); font-size: 14px; margin-top: 50%; }
+.chat-footer { display: flex; padding: 10px; border-top: 1px solid var(--border-color); background: white; }
+.chat-footer input { flex: 1; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; }
+.chat-footer button { padding: 0 15px; margin-left: 10px; }

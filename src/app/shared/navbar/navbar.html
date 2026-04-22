@@ -1,0 +1,35 @@
+<nav class="navbar">
+  <div class="logo-container" routerLink="/">
+    <div class="logo-icon">CE</div>
+    <div class="logo-text">
+      <span class="brand">ConnectEase</span>
+      <span class="city">Chennai</span>
+    </div>
+  </div>
+
+  <div class="nav-links">
+    <a routerLink="/services">Find Services</a>
+    <a routerLink="/community">Community</a>
+    @if (isLoggedIn && isVendor()) {
+      <a routerLink="/vendor/dashboard">Vendor Studio</a>
+    }
+  </div>
+
+  <div class="nav-actions">
+    <button class="btn-emergency"><span>!</span> Emergency</button>
+
+    <div class="profile-container">
+      @if (!isLoggedIn) {
+        <div class="profile-action sign-in" routerLink="/login">
+          <div class="icon-circle">👤</div>
+          <span class="action-text">Sign In</span>
+        </div>
+      } @else {
+        <div class="profile-action sign-out" (click)="logout()">
+          <div class="icon-circle">👤</div>
+          <span class="action-text">Sign Out</span>
+        </div>
+      }
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,10 @@
+main {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  background-color: var(--ce-bg);
+}
+
+:host {
+  display: block;
+}

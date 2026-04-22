@@ -1,0 +1,19 @@
+@if (chatService.isChatOpen) {
+<div class="chat-widget">
+  <div class="chat-header">
+    <span>Live Chat</span>
+    <button class="close-btn" (click)="close()">×</button>
+  </div>
+  <div class="chat-body">
+    @for (msg of chatHistory; track msg.messageId) {
+      <div class="msg-bubble"><strong>{{ msg.senderName }}:</strong> {{ msg.content }}</div>
+    } @empty {
+      <p class="empty-chat">Start the conversation!</p>
+    }
+  </div>
+  <div class="chat-footer">
+    <input #msgInput type="text" placeholder="Type a message..." (keyup.enter)="send(msgInput.value); msgInput.value=''">
+    <button class="btn-primary" (click)="send(msgInput.value); msgInput.value=''">Send</button>
+  </div>
+</div>
+}
