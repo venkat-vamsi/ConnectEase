@@ -3,6 +3,7 @@ package com.cts.connectease.service;
 import com.cts.connectease.dto.ReviewDTO;
 import com.cts.connectease.dto.ServiceDetailsDTO;
 import com.cts.connectease.dto.VendorDashboardDTO;
+import com.cts.connectease.dto.ImageDTO;
 import com.cts.connectease.model.*;
 import com.cts.connectease.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ public class VendorService {
 
     @Autowired
     private FeatureRepository featureRepository;
+
+    @Autowired
+    private ServiceImagesRepository serviceImagesRepository;
 
     @Transactional
     public ServiceDetailsDTO createNewService(String vendorId, ServiceEntity servicePayload) {
@@ -83,27 +87,40 @@ public class VendorService {
 
     @Transactional(readOnly = true)
     public VendorDashboardDTO getVendorDashboardStats(String vendorId) {
+        System.out.println("Getting dashboard stats for vendorId: " + vendorId);
         User vendor = userRepository.findById(vendorId)
                 .orElseThrow(() -> new RuntimeException("Vendor not found"));
 
         List<ServiceEntity> services = productRepository.findByVendorUid(vendorId);
+        System.out.println("Found " + services.size() + " services for vendor " + vendor.getEmail());
 
         long activeListings = services.size();
         long totalViews = services.stream()
                 .mapToLong(s -> s.getTotalViews() != null ? s.getTotalViews() : 0L)
                 .sum();
 
+        long totalReviews = services.stream()
+                .flatMap(s -> s.getRatings() != null ? s.getRatings().stream() : java.util.stream.Stream.empty())
+                .count();
+
         double avgRating = services.stream()
-                .flatMap(s -> s.getRatings().stream())
+                .flatMap(s -> s.getRatings() != null ? s.getRatings().stream() : java.util.stream.Stream.empty())
                 .mapToInt(Rating::getScore)
                 .average()
                 .orElse(0.0);
+
+        // Map services to DTOs for display
+        List<ServiceDetailsDTO> serviceDTOs = services.stream()
+                .map(this::mapToServiceDetailsDTO)
+                .collect(Collectors.toList());
 
         return VendorDashboardDTO.builder()
                 .vendorName(vendor.getFullName())
                 .activeListings(activeListings)
                 .totalViews(totalViews)
+                .totalReviews(totalReviews)
                 .averageRating(Math.round(avgRating * 10.0) / 10.0)
+                .services(serviceDTOs)
                 .build();
     }
 
@@ -126,6 +143,17 @@ public class VendorService {
                                 .build())
                         .collect(Collectors.toList()) : new ArrayList<>();
 
+        // Map service images to ImageDTO list
+        List<ImageDTO> imageDTOs = new ArrayList<>();
+        if (service.getImages() != null && !service.getImages().isEmpty()) {
+            imageDTOs = service.getImages().stream()
+                    .map(img -> ImageDTO.builder()
+                            .url(img.getUrl())
+                            .isPrimary(img.getIsPrimary() != null ? img.getIsPrimary() : Boolean.FALSE)
+                            .build())
+                    .collect(Collectors.toList());
+        }
+
         return ServiceDetailsDTO.builder()
                 .sid(service.getSid())
                 .name(service.getName())
@@ -133,8 +161,35 @@ public class VendorService {
                 .price(service.getPrice())
                 .totalViews(service.getTotalViews())
                 .vendorName(service.getVendor().getFullName())
+                .categoryName(service.getCategory() != null ? service.getCategory().getName() : "")
                 .averageRating(Math.round(avgRating * 10.0) / 10.0)
                 .reviews(reviewDTOs)
+                .images(imageDTOs)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Category> getAllCategories() {
+        return categoryRepository.findAll();
+    }
+
+    public String getDefaultImageForCategory(String categoryId) {
+        // Query default images from Service_Images table where service is null
+        List<ServiceImages> defaultImages = serviceImagesRepository.findByServiceIsNull();
+        // Map categoryId to image_id pattern
+        String imageIdPrefix = switch (categoryId) {
+            case "cat-01" -> "img-cleaning";
+            case "cat-02" -> "img-plumbing";
+            case "cat-03" -> "img-electrical";
+            case "cat-04" -> "img-carpentry";
+            case "cat-05" -> "img-painting";
+            case "cat-06" -> "img-home-repair";
+            default -> "img-cleaning";
+        };
+        return defaultImages.stream()
+                .filter(img -> imageIdPrefix.equals(img.getImageId()))
+                .findFirst()
+                .map(ServiceImages::getUrl)
+                .orElse("https://picsum.photos/id/100/400/300");
     }
 }
