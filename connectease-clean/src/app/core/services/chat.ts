@@ -14,7 +14,7 @@ export class ChatService {
 
   initConnection() {
     this.client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8081/ws-chat/websocket'),
+      webSocketFactory: () => new SockJS('http://localhost:9090/ws-chat/websocket'),
       reconnectDelay: 5000,
       onConnect: () => {
         if (this.currentSessionId) {
