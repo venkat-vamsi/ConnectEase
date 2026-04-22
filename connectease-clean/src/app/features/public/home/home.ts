@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -9,6 +9,7 @@ import { RouterLink } from '@angular/router';
   styleUrls: ['./home.css']
 })
 export class HomeComponent {
+  private router = inject(Router);
   categories = [
     { id: 'cat-1', name: 'PGs/Hostels', icon: '🏠', count: '1247+', bg: '#3B82F6' },
     { id: 'cat-2', name: 'Food Services', icon: '🍽️', count: '856+', bg: '#F97316' },
@@ -17,4 +18,9 @@ export class HomeComponent {
     { id: 'cat-5', name: 'Cleaners', icon: '🧹', count: '567+', bg: '#22C55E' },
     { id: 'cat-6', name: 'Laundry', icon: '👔', count: '312+', bg: '#A855F7' }
   ];
+
+  startAiSearch(query: string) {
+    if (!query.trim()) return;
+    this.router.navigate(['/ai-chat'], { queryParams: { q: query } });
+  }
 }

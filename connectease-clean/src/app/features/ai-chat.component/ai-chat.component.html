@@ -1,0 +1,74 @@
+<div class="ai-page-wrapper">
+  <div class="page-header">
+    <h1>AI-Powered Discovery in Chennai</h1>
+    <p>Let our intelligent assistant find the perfect match for your needs</p>
+  </div>
+
+  <div class="split-layout">
+    <div class="chat-container">
+      <div class="chat-header">
+        <div class="ai-avatar">🤖</div>
+        <div>
+          <h2>Chennai AI Assistant</h2>
+          <span class="status">Online • Analyzing your preferences</span>
+        </div>
+      </div>
+
+      <div class="chat-history" id="chat-history">
+        @for (msg of messages; track $index) {
+          <div class="message-wrapper" [ngClass]="msg.sender">
+            @if (msg.sender === 'ai') { <div class="avatar-small">AI</div> }
+            <div class="bubble">{{ msg.text }}</div>
+          </div>
+        }
+        
+        @if (isLoading) {
+          <div class="message-wrapper ai">
+            <div class="avatar-small">AI</div>
+            <div class="bubble typing">Typing<span>.</span><span>.</span><span>.</span></div>
+          </div>
+        }
+      </div>
+
+      <div class="chat-input-area">
+        <input type="text" [(ngModel)]="userInput" (keyup.enter)="sendMessage()" placeholder="Describe what you're looking for in Chennai...">
+        <button class="send-btn" (click)="sendMessage()" [disabled]="isLoading">➤</button>
+      </div>
+    </div>
+
+    <div class="results-container">
+      <div class="results-header">
+        <h2>Smart Recommendations</h2>
+        <span class="badge">{{ currentCards.length }} matches found</span>
+      </div>
+
+      <div class="cards-scroll-area">
+        @if (currentCards.length === 0 && !isLoading) {
+          <div class="empty-state">
+            Tell me what you need on the left, and I'll find the best options here!
+          </div>
+        }
+
+        @for (card of currentCards; track card.sid) {
+          <div class="service-card" [routerLink]="['/services', card.sid]">
+            <img [src]="card.primaryImageUrl || 'assets/placeholder.jpg'" alt="{{card.name}}">
+            <div class="card-details">
+              <div class="card-title-row">
+                <h3>{{ card.name }}</h3>
+                <span class="verified-badge">✓ Verified</span>
+              </div>
+              <p class="location">📍 {{ card.area ? card.area + ', ' : '' }}{{ card.city || 'Chennai' }}</p>
+              <p class="desc">{{ card.description | slice:0:60 }}...</p>
+              
+              <div class="card-footer">
+                <span class="rating">⭐ 4.8 (120)</span>
+                <span class="trust">🛡️ 94% Trust</span>
+                <span class="price">₹{{ card.price }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

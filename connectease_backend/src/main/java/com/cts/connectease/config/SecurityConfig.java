@@ -19,34 +19,34 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-	@Autowired
-	private JwtAuthenticationFilter jwtAuthFilter;
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthFilter;
 
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http
-			.cors(cors -> cors.configurationSource(request -> {
-				CorsConfiguration config = new CorsConfiguration();
-				// IMPORTANT: Change this to your Angular port if it's not 4200
-				config.setAllowedOrigins(List.of("http://localhost:4200")); 
-				config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-				config.setAllowedHeaders(List.of("*"));
-				config.setAllowCredentials(true); // Required for cookies!
-				return config;
-			}))
-			.csrf(csrf -> csrf.disable())
-			.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    // IMPORTANT: Change this to your Angular port if it's not 4200
+                    config.setAllowedOrigins(List.of("http://localhost:4200"));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowedHeaders(List.of("*"));
+                    config.setAllowCredentials(true); // Required for cookies!
+                    return config;
+                }))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // 1. MUST ADD THIS: Let browser preflight checks pass through!
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Public
-                        .requestMatchers("/api/auth/**", "/api/v1/listings/filter", "/ws-chat/**").permitAll()
+                        // Public - ADDED THE AI CHAT ENDPOINT HERE!
+                        .requestMatchers("/api/auth/**", "/api/v1/listings/filter", "/ws-chat/**", "/api/v1/ai-chat/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/services/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/community/**").permitAll()
 
@@ -60,8 +60,8 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated()
                 )
-			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-		return http.build();
-	}
+        return http.build();
+    }
 }
