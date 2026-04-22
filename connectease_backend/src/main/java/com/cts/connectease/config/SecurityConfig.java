@@ -34,7 +34,7 @@ public class SecurityConfig {
                     CorsConfiguration config = new CorsConfiguration();
                     // IMPORTANT: Change this to your Angular port if it's not 4200
                     config.setAllowedOrigins(List.of("http://localhost:4200"));
-                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
                     config.setAllowCredentials(true); // Required for cookies!
                     return config;
@@ -49,6 +49,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/api/v1/listings/filter", "/ws-chat/**", "/api/v1/ai-chat/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/services/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/community/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/ratings/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/locations/**").permitAll()
 
                         // Protected
                         .requestMatchers(HttpMethod.POST, "/api/services/*/reviews").authenticated()

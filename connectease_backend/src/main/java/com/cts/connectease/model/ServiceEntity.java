@@ -44,6 +44,9 @@ public class ServiceEntity {
     @Column(name = "total_views")
     private Long totalViews = 0L;
 
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean active = true;
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
