@@ -24,7 +24,14 @@ public class ListingService {
     @Transactional(readOnly = true)
     public Page<ListingCardDTO> getFilteredServices(
             String keyword, String categoryId, String city, String area,
-            BigDecimal minPrice, BigDecimal maxPrice,Double minRating, Double maxRating, String sortType, int page, int size) {
+            BigDecimal minPrice, BigDecimal maxPrice,Double minRating, Double maxRating, 
+            String sortType, int page, int size,
+            // Category-specific filters
+            String genderType, String foodType, String occupancy, String amenities,
+            String cuisineType, String mealType, String dietType, String delivery,
+            String serviceType, String urgency, String experience,
+            String cleaningType, String frequency, String ecoFriendly,
+            String washType, String pickupService, String turnaround) {
 
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
 
@@ -38,7 +45,12 @@ public class ListingService {
 
         // Build Specification
         Specification<ServiceEntity> spec = ServiceSpecification.getFilteredServices(
-                keyword, categoryId, city, area, minPrice, maxPrice, minRating, maxRating);
+                keyword, categoryId, city, area, minPrice, maxPrice, minRating, maxRating,
+                genderType, foodType, occupancy, amenities,
+                cuisineType, mealType, dietType, delivery,
+                serviceType, urgency, experience,
+                cleaningType, frequency, ecoFriendly,
+                washType, pickupService, turnaround);
 
         return serviceRepository.findAll(spec, pageable).map(this::mapToDTO);
     }

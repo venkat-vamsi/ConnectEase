@@ -1,8 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router'; // Added Router
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common'; // Required for @if and @for
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-listings',
@@ -14,11 +14,17 @@ import { CommonModule } from '@angular/common'; // Required for @if and @for
 export class ListingsComponent implements OnInit {
   private http = inject(HttpClient);
   private route = inject(ActivatedRoute);
-  private router = inject(Router); // Injected Router
+  private router = inject(Router);
 
   services: any[] = [];
   categoryName = 'All Services';
-  selectedCategoryId = ''; // Tracks active tab for UI highlight
+  selectedCategoryId = '';
+  
+  // Dynamic filter data
+  cities: string[] = [];
+  areas: string[] = [];
+  categoryFilters: any = null;
+  loadingFilters = false;
 
   // Professional Category Data
   categories = [
@@ -40,15 +46,94 @@ export class ListingsComponent implements OnInit {
     minRating: null as number | null,
     sortType: 'newest',
     page: 0,
-    size: 12
+    size: 12,
+    // Category-specific filters
+    categorySpecific: {} as any
   };
 
   ngOnInit() {
-    // Listen to query parameters to handle external navigation or refreshes
+    this.loadCities();
+    
+    // Listen to query parameters
     this.route.queryParams.subscribe(params => {
       this.filters.categoryId = params['categoryId'] || '';
       this.selectedCategoryId = this.filters.categoryId;
+      
+      // Load category-specific filters when category changes
+      if (this.filters.categoryId) {
+        this.loadCategoryFilters(this.filters.categoryId);
+      } else {
+        this.categoryFilters = null;
+      }
+      
       this.fetchFilteredResults();
+    });
+  }
+  
+  // Load cities from backend
+  loadCities() {
+    this.http.get<string[]>('/api/v1/locations/cities').subscribe({
+      next: (data) => {
+        this.cities = data;
+      },
+      error: (err) => {
+        console.error('Error loading cities:', err);
+        // Fallback to hardcoded values
+        this.cities = ['Chennai', 'Bangalore'];
+      }
+    });
+  }
+  
+  // Load areas when city changes
+  onCityChange() {
+    this.filters.area = '';
+    this.areas = [];
+    
+    if (this.filters.city) {
+      this.http.get<string[]>('/api/v1/locations/areas', {
+        params: { city: this.filters.city }
+      }).subscribe({
+        next: (data) => {
+          this.areas = data;
+        },
+        error: (err) => {
+          console.error('Error loading areas:', err);
+          this.areas = [];
+        }
+      });
+    }
+    
+    this.fetchFilteredResults();
+  }
+  
+  // Load category-specific filters
+  loadCategoryFilters(categoryId: string) {
+    this.loadingFilters = true;
+    this.http.get<any>(`/api/v1/listings/category-filters/${categoryId}`).subscribe({
+      next: (data) => {
+        this.categoryFilters = data;
+        
+        // Initialize category-specific filter values
+        this.filters.categorySpecific = {};
+        if (data.filters && data.filters.length > 0) {
+          data.filters.forEach((filter: any) => {
+            this.filters.categorySpecific[filter.key] = null;
+          });
+        }
+        
+        // Update price range from category config
+        if (data.priceRange) {
+          this.filters.minPrice = null;
+          this.filters.maxPrice = null;
+        }
+        
+        this.loadingFilters = false;
+      },
+      error: (err) => {
+        console.error('Error loading category filters:', err);
+        this.categoryFilters = null;
+        this.loadingFilters = false;
+      }
     });
   }
 
@@ -71,16 +156,52 @@ export class ListingsComponent implements OnInit {
     this.filters.minRating = rating;
     this.fetchFilteredResults();
   }
+  
+  // Handle category-specific filter change
+  onCategoryFilterChange() {
+    this.filters.page = 0;
+    this.fetchFilteredResults();
+  }
+  
+  // Handle checkbox changes for category filters
+  onCheckboxChange(filterKey: string, value: string, event: any) {
+    if (!this.filters.categorySpecific[filterKey]) {
+      this.filters.categorySpecific[filterKey] = [];
+    }
+    
+    const index = this.filters.categorySpecific[filterKey].indexOf(value);
+    if (event.target.checked) {
+      if (index === -1) {
+        this.filters.categorySpecific[filterKey].push(value);
+      }
+    } else {
+      if (index > -1) {
+        this.filters.categorySpecific[filterKey].splice(index, 1);
+      }
+    }
+    
+    this.onCategoryFilterChange();
+  }
 
   fetchFilteredResults() {
     let params = new HttpParams();
     
-    // Add all active filters to request
+    // Add basic filters
     Object.entries(this.filters).forEach(([key, value]) => {
+      if (key === 'categorySpecific') return; // Skip category-specific
       if (value !== null && value !== '') {
         params = params.set(key, value.toString());
       }
     });
+    
+    // Add category-specific filters
+    if (this.filters.categorySpecific) {
+      Object.entries(this.filters.categorySpecific).forEach(([key, value]) => {
+        if (value !== null && value !== '') {
+          params = params.set(key, value.toString());
+        }
+      });
+    }
 
     this.http.get<any>('/api/v1/listings/filter', { params }).subscribe({
       next: (res) => {

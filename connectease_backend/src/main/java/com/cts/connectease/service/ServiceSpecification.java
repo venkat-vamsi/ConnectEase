@@ -16,7 +16,13 @@ public class ServiceSpecification {
     public static Specification<ServiceEntity> getFilteredServices(
             String keyword, String categoryId, String city, String area,
             BigDecimal minPrice, BigDecimal maxPrice,
-            Double minRating, Double maxRating) { // Added Rating parameters here
+            Double minRating, Double maxRating,
+            // Category-specific filters
+            String genderType, String foodType, String occupancy, String amenities,
+            String cuisineType, String mealType, String dietType, String delivery,
+            String serviceType, String urgency, String experience,
+            String cleaningType, String frequency, String ecoFriendly,
+            String washType, String pickupService, String turnaround) {
 
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -65,7 +71,55 @@ public class ServiceSpecification {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("price"), maxPrice));
             }
 
+            // 6. Category-Specific Filters (search in features)
+            // PG Filters
+            addFeatureFilter(predicates, root, criteriaBuilder, genderType);
+            addFeatureFilter(predicates, root, criteriaBuilder, foodType);
+            addFeatureFilter(predicates, root, criteriaBuilder, occupancy);
+            addFeatureFilter(predicates, root, criteriaBuilder, amenities);
+            
+            // Food Services Filters
+            addFeatureFilter(predicates, root, criteriaBuilder, cuisineType);
+            addFeatureFilter(predicates, root, criteriaBuilder, mealType);
+            addFeatureFilter(predicates, root, criteriaBuilder, dietType);
+            addFeatureFilter(predicates, root, criteriaBuilder, delivery);
+            
+            // Electrician/Plumber Filters
+            addFeatureFilter(predicates, root, criteriaBuilder, serviceType);
+            addFeatureFilter(predicates, root, criteriaBuilder, urgency);
+            addFeatureFilter(predicates, root, criteriaBuilder, experience);
+            
+            // Cleaner Filters
+            addFeatureFilter(predicates, root, criteriaBuilder, cleaningType);
+            addFeatureFilter(predicates, root, criteriaBuilder, frequency);
+            addFeatureFilter(predicates, root, criteriaBuilder, ecoFriendly);
+            
+            // Laundry Filters
+            addFeatureFilter(predicates, root, criteriaBuilder, washType);
+            addFeatureFilter(predicates, root, criteriaBuilder, pickupService);
+            addFeatureFilter(predicates, root, criteriaBuilder, turnaround);
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+    }
+    
+    /**
+     * Helper method to add feature filter if the filter value is not null/empty
+     * Searches for the filter value in the service's features collection
+     */
+    private static void addFeatureFilter(
+            List<Predicate> predicates,
+            Root<ServiceEntity> root,
+            jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
+            String filterValue) {
+        
+        if (filterValue != null && !filterValue.trim().isEmpty()) {
+            // Join with features table and search for matching feature name
+            Predicate featureMatch = criteriaBuilder.isMember(
+                filterValue,
+                root.join("features").get("name")
+            );
+            predicates.add(featureMatch);
+        }
     }
 }
