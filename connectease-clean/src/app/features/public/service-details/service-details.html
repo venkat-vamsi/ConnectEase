@@ -1,136 +1,92 @@
-<div class="details-wrapper">
+<div class="details-container">
+  <button class="back-btn" routerLink="/services">‹ Back to Results</button>
+  
   <!-- Loading State -->
   @if (loading) {
     <div class="loading-state">
-      <div class="spinner"></div>
       <p>Loading service details...</p>
     </div>
   }
   
   <!-- Error State -->
-  @if (error && !loading) {
+  @if (error) {
     <div class="error-state">
-      <p class="error-message">{{ error }}</p>
+      <p>{{ error }}</p>
       <button class="retry-btn" (click)="loadServiceDetails(service?.sid || '')">Retry</button>
     </div>
   }
   
   <!-- Service Details -->
-  @if (service && !loading && !error) {
-    <button class="back-btn" routerLink="/services">‹ Back to Results</button>
-    
-    <div class="details-grid">
-      <!-- Left Column - Main Content -->
-      <div class="main-content">
-        <!-- Image Gallery -->
-        <div class="image-gallery-section">
-          <div class="main-image">
-            @if (service.images && service.images.length > 0) {
-              <img [src]="selectedImage || service.images[0].url" [alt]="service.name" />
-            } @else {
-              <div class="no-image-placeholder">
-                <span class="placeholder-icon">📷</span>
-                <p>No images available</p>
-              </div>
-            }
-          </div>
-          @if (service.images && service.images.length > 1) {
-            <div class="thumbnail-gallery">
-              @for (img of service.images; track img.url; let i = $index) {
-                <img 
-                  [src]="img.url" 
-                  [alt]="service.name + ' - Image ' + (i + 1)"
-                  (click)="selectedImage = img.url"
-                  [class.active]="selectedImage === img.url"
-                  class="thumbnail" />
-              }
+  @if (service && !loading) {
+    <div class="content-grid">
+      <div class="main-column">
+        <div class="image-gallery">
+          @if (service.images && service.images.length > 0) {
+            <img [src]="service.images[0].url" [alt]="service.name" style="width: 100%; height: 400px; object-fit: cover; border-radius: 12px;">
+          } @else {
+            <div style="width: 100%; height: 400px; background: #f0f0f0; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+              <p>No images available</p>
             </div>
           }
+          <div class="gallery-controls">
+            <button class="icon-btn">♡</button>
+            <button class="icon-btn">🔗</button>
+          </div>
         </div>
 
-        <!-- Service Info Header -->
-        <div class="service-header">
-          <div class="title-section">
-            <h1 class="service-title">{{ service.name || 'Service Name Not Available' }}</h1>
+        <div class="header-info">
+          <div>
+            <h1>{{ service.name }} <span class="badge-verified">✓ Verified</span></h1>
+            <p class="location">📍 {{ service.fullAddress || service.area || 'Location not specified' }}</p>
             @if (service.categoryName) {
-              <span class="category-badge">{{ service.categoryName }}</span>
-            }
-            @if (service.verified) {
-              <span class="verified-badge">✓ Verified</span>
+              <p class="category-tag">Category: {{ service.categoryName }}</p>
             }
           </div>
-          
-          <div class="rating-section">
-            <div class="rating-stars">
-              @for (star of [1,2,3,4,5]; track star) {
-                <span class="star" [class.filled]="star <= (service.averageRating || 0)">★</span>
-              }
-            </div>
-            <span class="rating-value">{{ service.averageRating ? (service.averageRating | number:'1.1-1') : 'N/A' }}</span>
-            <span class="review-count">({{ service.reviews?.length || 0 }} reviews)</span>
+          <div class="price-block">
+            <h2>₹{{ service.price }}</h2>
+            <p>per service</p>
           </div>
-          
-          <p class="location-info">
-            <span class="icon">📍</span>
-            {{ service.fullAddress || service.area || service.city || 'Location not specified' }}
-          </p>
         </div>
 
-        <!-- Description Section -->
-        <div class="content-section">
-          <h2>About This Service</h2>
-          <p class="description">{{ service.description || 'No description available for this service.' }}</p>
+        <!-- Description -->
+        <div class="description-section">
+          <h3>About This Service</h3>
+          <p>{{ service.description || 'No description available.' }}</p>
         </div>
 
-        <!-- Features & Amenities -->
+        <!-- Features -->
         @if (service.features && service.features.length > 0) {
-          <div class="content-section">
-            <h2>Features & Amenities</h2>
+          <div class="features-section">
+            <h3>Features & Amenities</h3>
             <div class="features-grid">
               @for (feature of service.features; track feature) {
-                <div class="feature-item">
-                  <span class="feature-icon">✓</span>
-                  <span class="feature-text">{{ feature }}</span>
-                </div>
+                <div class="feature-item">✓ {{ feature }}</div>
               }
             </div>
           </div>
         }
 
-        <!-- Vendor Information -->
+        <!-- Vendor Info -->
         @if (service.vendorName) {
-          <div class="content-section">
-            <h2>Service Provider</h2>
-            <div class="vendor-card">
-              <div class="vendor-info">
-                <div class="vendor-avatar">{{ service.vendorName.charAt(0) | uppercase }}</div>
-                <div class="vendor-details">
-                  <h3>{{ service.vendorName }}</h3>
-                  @if (service.vendorEmail) {
-                    <p class="vendor-contact">📧 {{ service.vendorEmail }}</p>
-                  }
-                  @if (service.vendorPhone) {
-                    <p class="vendor-contact">📞 {{ service.vendorPhone }}</p>
-                  }
-                </div>
-              </div>
-            </div>
+          <div class="vendor-info">
+            <h3>Service Provider</h3>
+            <p><strong>{{ service.vendorName }}</strong></p>
+            @if (service.vendorEmail) {
+              <p>📧 {{ service.vendorEmail }}</p>
+            }
+            @if (service.vendorPhone) {
+              <p>📞 {{ service.vendorPhone }}</p>
+            }
           </div>
         }
 
         <!-- Reviews Section -->
-        <div class="content-section">
-          <h2>Customer Reviews</h2>
-          <div class="reviews-summary">
-            <div class="average-rating">
-              <span class="big-rating">{{ service.averageRating ? (service.averageRating | number:'1.1-1') : 'N/A' }}</span>
-              <div class="rating-stars-large">
-                @for (star of [1,2,3,4,5]; track star) {
-                  <span class="star-large" [class.filled]="star <= (service.averageRating || 0)">★</span>
-                }
-              </div>
-              <p>Based on {{ service.reviews?.length || 0 }} reviews</p>
-            </div>
+        <div class="reviews-section">
+          <h3>Customer Reviews ({{ service.reviews?.length || 0 }})</h3>
+          <div class="rating-summary">
+            <span class="big-rating">{{ service.averageRating || 'N/A' }}</span>
+            <div class="stars">★★★★☆</div>
+            <p>Based on {{ service.reviews?.length || 0 }} reviews</p>
           </div>
           
           @if (service.reviews && service.reviews.length > 0) {
@@ -138,81 +94,25 @@
               @for (review of service.reviews; track review) {
                 <div class="review-card">
                   <div class="review-header">
-                    <div class="reviewer-avatar">{{ review.userName.charAt(0) | uppercase }}</div>
-                    <div class="reviewer-info">
-                      <strong>{{ review.userName }}</strong>
-                      <div class="review-rating">
-                        @for (star of [1,2,3,4,5]; track star) {
-                          <span class="star-small" [class.filled]="star <= (review.score || 0)">★</span>
-                        }
-                      </div>
-                    </div>
+                    <strong>{{ review.userName }}</strong>
+                    <span class="review-rating">{{ review.score }}/5</span>
                   </div>
                   <p class="review-text">{{ review.review }}</p>
                 </div>
               }
             </div>
           } @else {
-            <p class="no-reviews">No reviews yet. Be the first to review this service!</p>
+            <p class="no-reviews">No reviews yet. Be the first to review!</p>
           }
         </div>
       </div>
 
-      <!-- Right Column - Sticky Sidebar -->
-      <aside class="sidebar">
+      <!-- Sidebar -->
+      <aside class="sidebar-column">
         <div class="booking-card">
-          <div class="price-box">
-            <span class="currency">₹</span>
-            <span class="price">{{ service.price ? (service.price | number:'1.0-0') : '0' }}</span>
-            @if (service.categoryName) {
-              <span class="price-unit">
-                @if (service.categoryName.includes('PG') || service.categoryName.includes('Hostel')) {
-                  /month
-                } @else if (service.categoryName.includes('Laundry')) {
-                  /service
-                } @else {
-                  /service
-                }
-              </span>
-            }
-          </div>
-          
-          <div class="service-highlights">
-            @if (service.verified) {
-              <div class="highlight-item">
-                <span class="highlight-icon">✓</span>
-                <span>Verified Provider</span>
-              </div>
-            }
-            <div class="highlight-item">
-              <span class="highlight-icon">⭐</span>
-              <span>{{ service.averageRating ? (service.averageRating | number:'1.1-1') : 'N/A' }} Rating</span>
-            </div>
-            <div class="highlight-item">
-              <span class="highlight-icon">👁️</span>
-              <span>{{ service.totalViews || 0 }} Views</span>
-            </div>
-          </div>
-          
-          <div class="action-buttons">
-            <button class="btn-primary">Contact Provider</button>
-            <button class="btn-secondary">Start Chat</button>
-          </div>
-          
-          <div class="share-save">
-            <button class="btn-icon" title="Share">🔗 Share</button>
-            <button class="btn-icon" title="Save">♡ Save</button>
-          </div>
-        </div>
-        
-        <!-- Location Map Placeholder -->
-        <div class="location-card">
-          <h3>Location</h3>
-          <p class="location-text">{{ service.fullAddress || service.area || service.city || 'Location not specified' }}</p>
-          <div class="map-placeholder">
-            <span class="map-icon">🗺️</span>
-            <p>Map view coming soon</p>
-          </div>
+          <h3>Interested in this service?</h3>
+          <button class="contact-btn">Contact Provider</button>
+          <button class="chat-btn">Start Chat</button>
         </div>
       </aside>
     </div>

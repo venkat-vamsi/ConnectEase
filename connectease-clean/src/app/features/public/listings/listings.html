@@ -54,53 +54,18 @@
     <div class="filter-section">
       <label>Location</label>
       <div class="select-stack">
-        <select class="pro-select" [(ngModel)]="filters.city" (change)="onCityChange()">
+        <select class="pro-select" [(ngModel)]="filters.city" (change)="fetchFilteredResults()">
           <option value="">All Cities</option>
-          @for (city of cities; track city) {
-            <option [value]="city">{{ city }}</option>
-          }
+          <option value="Chennai">Chennai</option>
+          <option value="Bangalore">Bangalore</option>
         </select>
         <select class="pro-select" [(ngModel)]="filters.area" (change)="fetchFilteredResults()">
           <option value="">All Areas</option>
-          @for (area of areas; track area) {
-            <option [value]="area">{{ area }}</option>
-          }
+          <option value="Adyar">Adyar</option>
+          <option value="Velachery">Velachery</option>
         </select>
       </div>
     </div>
-
-    <!-- Category-Specific Filters -->
-    @if (categoryFilters && categoryFilters.filters) {
-      @for (filter of categoryFilters.filters; track filter.key) {
-        <div class="filter-section">
-          <label>{{ filter.label }}</label>
-          
-          @if (filter.type === 'dropdown') {
-            <select class="pro-select" 
-                    [(ngModel)]="filters.categorySpecific[filter.key]" 
-                    (change)="onCategoryFilterChange()">
-              <option value="">All</option>
-              @for (option of filter.options; track option) {
-                <option [value]="option">{{ option }}</option>
-              }
-            </select>
-          }
-          
-          @if (filter.type === 'checkbox') {
-            <div class="checkbox-list">
-              @for (option of filter.options; track option) {
-                <label class="checkbox-item">
-                  <input type="checkbox" 
-                         [value]="option"
-                         (change)="onCheckboxChange(filter.key, option, $event)" />
-                  <span>{{ option }}</span>
-                </label>
-              }
-            </div>
-          }
-        </div>
-      }
-    }
 
     <div class="filter-section">
       <label>Customer Ratings</label>
