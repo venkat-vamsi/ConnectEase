@@ -45,15 +45,13 @@ public class ProductService {
             reviewDTOs = service.getRatings().stream()
                     .map(r -> ReviewDTO.builder()
                             .userName(r.getUser() != null ? r.getUser().getFullName() : "Anonymous")
-                            // If you added profileImage to ReviewDTO, map it here:
-                            // .profileImage(r.getUser() != null ? r.getUser().getImage() : null)
                             .review(r.getReview())
                             .score(r.getScore() != null ? r.getScore() : 0)
                             .build())
                     .collect(Collectors.toList());
         }
 
-        // Map service images to ImageDTO list for the details page
+        // Map service images to ImageDTO list
         List<ImageDTO> imageDTOs = new ArrayList<>();
         if (service.getImages() != null && !service.getImages().isEmpty()) {
             imageDTOs = service.getImages().stream()
@@ -64,6 +62,22 @@ public class ProductService {
                     .collect(Collectors.toList());
         }
 
+        // Map features to list of strings
+        List<String> featureNames = new ArrayList<>();
+        if (service.getFeatures() != null && !service.getFeatures().isEmpty()) {
+            featureNames = service.getFeatures().stream()
+                    .map(f -> f.getName())
+                    .collect(Collectors.toList());
+        }
+
+        // Build location string
+        String fullAddress = "";
+        if (service.getLocation() != null) {
+            String area = service.getLocation().getArea() != null ? service.getLocation().getArea() : "";
+            String city = service.getLocation().getCity() != null ? service.getLocation().getCity() : "";
+            fullAddress = area + ", " + city;
+        }
+
         return ServiceDetailsDTO.builder()
                 .sid(service.getSid())
                 .name(service.getName())
@@ -71,9 +85,17 @@ public class ProductService {
                 .price(service.getPrice())
                 .totalViews(service.getTotalViews())
                 .vendorName(service.getVendor() != null ? service.getVendor().getFullName() : "Unknown")
+                .vendorEmail(service.getVendor() != null ? service.getVendor().getEmail() : null)
+                .vendorPhone(service.getVendor() != null ? service.getVendor().getPhone() : null)
                 .averageRating(Math.round(avgRating * 10.0) / 10.0)
                 .reviews(reviewDTOs)
                 .images(imageDTOs)
+                .city(service.getLocation() != null ? service.getLocation().getCity() : null)
+                .area(service.getLocation() != null ? service.getLocation().getArea() : null)
+                .fullAddress(fullAddress)
+                .categoryId(service.getCategory() != null ? service.getCategory().getCid() : null)
+                .categoryName(service.getCategory() != null ? service.getCategory().getName() : null)
+                .features(featureNames)
                 .build();
     }
 

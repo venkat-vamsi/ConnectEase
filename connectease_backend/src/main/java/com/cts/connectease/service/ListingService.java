@@ -23,7 +23,7 @@ public class ListingService {
     // Use ONLY this method with BigDecimal
     @Transactional(readOnly = true)
     public Page<ListingCardDTO> getFilteredServices(
-            String categoryId, String city, String area,
+            String keyword, String categoryId, String city, String area,
             BigDecimal minPrice, BigDecimal maxPrice,Double minRating, Double maxRating, String sortType, int page, int size) {
 
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
@@ -36,10 +36,9 @@ public class ListingService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Build Specification (Ensure ServiceSpecification also uses BigDecimal)
-        // Inside ListingService.java
+        // Build Specification
         Specification<ServiceEntity> spec = ServiceSpecification.getFilteredServices(
-                null, categoryId, city, area, minPrice, maxPrice, minRating, maxRating);
+                keyword, categoryId, city, area, minPrice, maxPrice, minRating, maxRating);
 
         return serviceRepository.findAll(spec, pageable).map(this::mapToDTO);
     }

@@ -31,6 +31,7 @@ export class ListingsComponent implements OnInit {
   ];
 
   filters = {
+    keyword: '',
     categoryId: '',
     city: '',
     area: '',
@@ -39,7 +40,7 @@ export class ListingsComponent implements OnInit {
     minRating: null as number | null,
     sortType: 'newest',
     page: 0,
-    size: 10
+    size: 12
   };
 
   ngOnInit() {
@@ -55,9 +56,15 @@ export class ListingsComponent implements OnInit {
   filterByCategory(id: string) {
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { categoryId: id || null }, // Use null to remove the param for 'All Services'
-      queryParamsHandling: 'merge' // Keeps city/area/price filters intact
+      queryParams: { categoryId: id || null },
+      queryParamsHandling: 'merge'
     });
+  }
+
+  // Search function
+  onSearch() {
+    this.filters.page = 0;
+    this.fetchFilteredResults();
   }
 
   setRating(rating: number | null) {

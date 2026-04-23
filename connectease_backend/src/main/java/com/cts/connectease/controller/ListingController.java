@@ -19,6 +19,7 @@ public class ListingController {
 
     @GetMapping("/filter")
     public ResponseEntity<Page<ListingCardDTO>> filterServices(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String categoryId,
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String area,
@@ -26,12 +27,12 @@ public class ListingController {
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) Double minRating,
             @RequestParam(required = false) Double maxRating,
-            @RequestParam(defaultValue = "newest") String sortType, // newest, price_asc, price_desc
+            @RequestParam(defaultValue = "newest") String sortType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         Page<ListingCardDTO> results = listingService.getFilteredServices(
-                categoryId, city, area, minPrice, maxPrice,minRating, maxRating, sortType, page, size);
+                keyword, categoryId, city, area, minPrice, maxPrice, minRating, maxRating, sortType, page, size);
 
         return ResponseEntity.ok(results);
     }
