@@ -19,6 +19,7 @@ interface ServiceDetail {
   averageRating: number;
   reviews: Review[];
   images: ServiceImage[];
+  features: string[];
 }
 
 @Component({

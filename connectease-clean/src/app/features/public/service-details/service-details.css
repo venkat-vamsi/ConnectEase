@@ -49,6 +49,11 @@
 .desc-section h3 { font-size: 16px; margin: 0 0 8px; color: var(--text-dark); }
 .desc-section p { color: var(--text-light); line-height: 1.7; margin: 0; }
 
+.features-section { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--border-color); }
+.features-section h3 { font-size: 16px; margin: 0 0 12px; color: var(--text-dark); }
+.features-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.feature-chip { display: inline-flex; align-items: center; gap: 5px; background: #EFF6FF; color: var(--ce-blue); border: 1px solid #BFDBFE; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+
 /* Reviews */
 .reviews-card { background: white; border-radius: 16px; border: 1px solid var(--border-color); padding: 28px; }
 .reviews-card h3 { font-size: 18px; margin: 0 0 20px; color: var(--text-dark); }

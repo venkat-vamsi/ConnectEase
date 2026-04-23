@@ -18,16 +18,20 @@ export interface AIChatResponse {
   cards: ListingCardDTO[];
 }
 
+export interface ChatTurn {
+  role: 'user' | 'model';
+  text: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AiChatService {
   private http = inject(HttpClient);
   private apiUrl = '/api/v1/ai-chat/ask';
 
-  askAssistant(query: string): Observable<AIChatResponse> {
-    return this.http.post<AIChatResponse>(this.apiUrl, { query }).pipe(
+  askAssistant(query: string, history: ChatTurn[] = []): Observable<AIChatResponse> {
+    return this.http.post<AIChatResponse>(this.apiUrl, { query, history }).pipe(
       catchError(err => {
         console.error('AI Service Error:', err);
-        // Fallback response so the UI doesn't crash
         return of({
           aiMessage: "I'm having a bit of trouble connecting to my servers right now. Please try again in a moment!",
           cards: []

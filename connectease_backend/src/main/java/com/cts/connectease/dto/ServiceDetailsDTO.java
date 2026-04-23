@@ -21,4 +21,5 @@ public class ServiceDetailsDTO {
     private double averageRating;
     private List<ReviewDTO> reviews;
     private List<ImageDTO> images;
+    private List<String> features;
 }

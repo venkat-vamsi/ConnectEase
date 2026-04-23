@@ -76,6 +76,17 @@
               <h3>About This Service</h3>
               <p>{{ service.description }}</p>
             </div>
+
+            @if (service.features && service.features.length > 0) {
+              <div class="features-section">
+                <h3>What's Included</h3>
+                <div class="features-grid">
+                  @for (f of service.features; track f) {
+                    <span class="feature-chip">✓ {{ f }}</span>
+                  }
+                </div>
+              </div>
+            }
           </div>
 
           <!-- Reviews Section -->
