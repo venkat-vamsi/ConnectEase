@@ -31,6 +31,9 @@ public class CommunityPost {
     @Column(length = 500)
     private String image;
 
+    @Column(length = 100)
+    private String category;
+
     @CreationTimestamp
     private LocalDateTime time;
 }

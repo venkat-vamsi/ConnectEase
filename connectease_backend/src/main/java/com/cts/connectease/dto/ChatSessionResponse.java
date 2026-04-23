@@ -6,8 +6,9 @@ import java.util.List;
 @Data
 public class ChatSessionResponse {
     private String sessionId;
-    private String participantName; // The person the user is talking to
-    private String participantImage; // Their profile pic
-    private List<ChatMessageDto> messages; // Chat history
+    private String currentUserId;
+    private String participantName;
+    private String participantImage;
+    private List<ChatMessageDto> messages;
 }
 

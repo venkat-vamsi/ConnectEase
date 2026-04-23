@@ -24,8 +24,11 @@ export class LoginComponent {
   onSubmit() {
     if (this.loginForm.valid) {
       this.authService.login(this.loginForm.value).subscribe({
-        next: (res) => {
-          if (res.status === 'success') this.router.navigate(['/']);
+        next: (res: any) => {
+          if (res.status === 'success') {
+            const dest = res.role === 'vendor' ? '/vendor/dashboard' : '/';
+            this.router.navigate([dest]);
+          }
         },
         error: () => this.errorMessage = 'Invalid email or password'
       });

@@ -1,79 +1,290 @@
 <div class="dash-layout">
+
+  <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="profile-badge">VS</div>
-    <h3>Vendor Studio</h3>
-    <p class="sub-text">Manage your services</p>
-    
+    <div class="profile-badge">
+      {{ stats?.vendorName?.charAt(0) || 'V' }}
+    </div>
+    <h3>{{ stats?.vendorName || 'Vendor Studio' }}</h3>
+    <p class="sub-text">Service Provider</p>
+
     <nav class="nav-menu">
-      <a class="active">Dashboard</a>
-      <a>My Listings</a>
-      <a>Reviews</a>
-      <a>Analytics</a>
+      <a [class.active]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+      <a [class.active]="activeTab === 'listings'" (click)="switchTab('listings')">
+        <span class="nav-icon">📋</span> My Listings
+      </a>
+      <a [class.active]="activeTab === 'add'" (click)="switchTab('add')">
+        <span class="nav-icon">➕</span> Add Service
+      </a>
     </nav>
   </aside>
 
+  <!-- Main Content -->
   <main class="dash-content">
-    <div class="dash-header">
-      <div>
-        <h1>Dashboard</h1>
-        <p>Welcome back! Here's your performance overview.</p>
-      </div>
-      <button class="btn-primary">+ Add New Service</button>
-    </div>
 
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-icon bg-orange">⭐</div>
-        <h2>{{ stats.trustScore }}%</h2>
-        <p>Trust Score</p>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon bg-blue">👁️</div>
-        <h2>{{ stats.totalViews }}</h2>
-        <p>Total Views</p>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon bg-green">📋</div>
-        <h2>{{ stats.activeListings }}</h2>
-        <p>Active Listings</p>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon bg-purple">💬</div>
-        <h2>{{ stats.totalReviews }}</h2>
-        <p>Total Reviews</p>
-      </div>
-    </div>
-
-    <div class="bottom-grid">
-      <div class="card">
-        <h3>Performance Metrics</h3>
-        <div class="metric-group">
-          <div class="metric-label"><span>Response Rate</span><span>{{ stats.responseRate }}%</span></div>
-          <div class="progress-bar"><div class="fill bg-green" [style.width.%]="stats.responseRate"></div></div>
+    <!-- ========== DASHBOARD TAB ========== -->
+    @if (activeTab === 'dashboard') {
+      <div class="dash-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p>Welcome back! Here's your performance overview.</p>
         </div>
-        <div class="metric-group">
-          <div class="metric-label"><span>Trust Score</span><span>{{ stats.trustScore }}%</span></div>
-          <div class="progress-bar"><div class="fill bg-purple" [style.width.%]="stats.trustScore"></div></div>
-        </div>
+        <button class="btn-primary" (click)="switchTab('add')">+ Add New Service</button>
       </div>
 
-      <div class="card">
-        <h3>Recent Activity</h3>
-        <div class="activity-item">
-          <div class="act-icon bg-orange-light">⭐</div>
-          <div>
-            <h4>New review received</h4>
-            <p>2 hours ago</p>
+      @if (statsLoading) {
+        <div class="loading-row">
+          <div class="spinner-sm"></div><span>Loading stats…</span>
+        </div>
+      }
+
+      @if (stats) {
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon bg-orange">⭐</div>
+            <h2>{{ stats.averageRating | number:'1.1-1' }}</h2>
+            <p>Avg Rating</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-blue">👁️</div>
+            <h2>{{ stats.totalViews | number }}</h2>
+            <p>Total Views</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-green">📋</div>
+            <h2>{{ stats.activeListings }}</h2>
+            <p>Active Listings</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-purple">💬</div>
+            <h2>{{ stats.totalReviews }}</h2>
+            <p>Total Reviews</p>
           </div>
         </div>
-        <div class="activity-item">
-          <div class="act-icon bg-blue-light">👁️</div>
-          <div>
-            <h4>Profile viewed 23 times</h4>
-            <p>5 hours ago</p>
+
+        <div class="bottom-grid">
+          <div class="card">
+            <h3>Performance Overview</h3>
+            <div class="metric-group">
+              <div class="metric-label"><span>Average Rating</span><span>{{ stats.averageRating | number:'1.1-1' }} / 5</span></div>
+              <div class="progress-bar"><div class="fill bg-purple" [style.width.%]="(stats.averageRating / 5) * 100"></div></div>
+            </div>
+            <div class="metric-group">
+              <div class="metric-label"><span>Active Listings</span><span>{{ stats.activeListings }}</span></div>
+              <div class="progress-bar"><div class="fill bg-green" [style.width.%]="(stats.activeListings / 10) * 100"></div></div>
+            </div>
+            <div class="metric-group">
+              <div class="metric-label"><span>Total Reviews</span><span>{{ stats.totalReviews }}</span></div>
+              <div class="progress-bar"><div class="fill bg-blue" [style.width.%]="Math.min((stats.totalReviews / 100) * 100, 100)"></div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Quick Actions</h3>
+            <div class="quick-actions">
+              <button class="qa-btn" (click)="switchTab('add')">
+                <span class="qa-icon bg-blue">➕</span>
+                <div><strong>Add Service</strong><p>List a new offering</p></div>
+              </button>
+              <button class="qa-btn" (click)="switchTab('listings')">
+                <span class="qa-icon bg-green">📋</span>
+                <div><strong>Manage Listings</strong><p>Edit or delete services</p></div>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ========== MY LISTINGS TAB ========== -->
+    @if (activeTab === 'listings') {
+      <div class="dash-header">
+        <div>
+          <h1>My Listings</h1>
+          <p>Manage all your service offerings.</p>
+        </div>
+        <button class="btn-primary" (click)="switchTab('add')">+ Add Service</button>
+      </div>
+
+      @if (listingsLoading) {
+        <div class="loading-row"><div class="spinner-sm"></div><span>Loading listings…</span></div>
+      }
+
+      @if (!listingsLoading && listings.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <h3>No listings yet</h3>
+          <p>Start by adding your first service offering.</p>
+          <button class="btn-primary" (click)="switchTab('add')">Add Your First Service</button>
+        </div>
+      }
+
+      <div class="listings-grid">
+        @for (l of listings; track l.sid) {
+          <div class="listing-card">
+            <div class="lc-img">
+              <img [src]="l.primaryImageUrl || 'assets/placeholder.jpg'" [alt]="l.name" />
+              <span class="lc-status" [class.active]="l.active !== false">
+                {{ l.active !== false ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+            <div class="lc-body">
+              <h4>{{ l.name }}</h4>
+              <p class="lc-loc">📍 {{ l.area || '—' }}, {{ l.city || '—' }}</p>
+              <p class="lc-price">₹{{ l.price | number }}<span class="lc-cat"> · {{ l.categoryName || 'Service' }}</span></p>
+            </div>
+            <div class="lc-actions">
+              <button class="lc-btn edit" (click)="openEditForm(l)">✏️ Edit</button>
+              <button class="lc-btn toggle" (click)="toggleStatus(l)">
+                {{ l.active !== false ? '⏸ Deactivate' : '▶ Activate' }}
+              </button>
+              <button class="lc-btn delete" (click)="confirmDelete(l.sid)">🗑️ Delete</button>
+            </div>
+
+            <!-- Delete Confirm Inline -->
+            @if (deleteConfirmSid === l.sid) {
+              <div class="delete-confirm">
+                <p>Delete "<strong>{{ l.name }}</strong>"? This cannot be undone.</p>
+                <div class="dc-btns">
+                  <button class="btn-danger-sm" (click)="deleteService(l.sid)">Yes, Delete</button>
+                  <button class="btn-cancel-sm" (click)="cancelDelete()">Cancel</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ========== ADD / EDIT SERVICE TAB ========== -->
+    @if (activeTab === 'add' || activeTab === 'edit') {
+      <div class="dash-header">
+        <div>
+          <h1>{{ activeTab === 'edit' ? 'Edit Service' : 'Add New Service' }}</h1>
+          <p>{{ activeTab === 'edit' ? 'Update your service details below.' : 'Fill in the details to list a new service.' }}</p>
+        </div>
+        <button class="btn-outline-sm" (click)="switchTab('listings')">← Back to Listings</button>
+      </div>
+
+      @if (formError) {
+        <div class="alert-error">{{ formError }}</div>
+      }
+      @if (formSuccess) {
+        <div class="alert-success">✓ {{ formSuccess }}</div>
+      }
+
+      <div class="form-grid">
+        <!-- Basic Info -->
+        <div class="form-section">
+          <h3 class="form-section-title">Basic Information</h3>
+          <div class="form-group">
+            <label>Service Name *</label>
+            <input type="text" [(ngModel)]="serviceForm.name" placeholder="e.g. Home Deep Cleaning" />
+          </div>
+          <div class="form-group">
+            <label>Description *</label>
+            <textarea [(ngModel)]="serviceForm.description" rows="4"
+              placeholder="Describe what your service includes, how it works, and what makes it unique..."></textarea>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Price (₹) *</label>
+              <input type="number" [(ngModel)]="serviceForm.price" placeholder="e.g. 1500" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <select [(ngModel)]="serviceForm.categoryId">
+                <option value="">— Select —</option>
+                @for (cat of categories; track cat.cid) {
+                  <option [value]="cat.cid">{{ cat.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="form-section">
+          <h3 class="form-section-title">Location</h3>
+          <div class="form-group">
+            <label>Address</label>
+            <input type="text" [(ngModel)]="serviceForm.address" placeholder="Street address" />
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>City</label>
+              <input type="text" [(ngModel)]="serviceForm.city" placeholder="e.g. Hyderabad" />
+            </div>
+            <div class="form-group">
+              <label>Area</label>
+              <input type="text" [(ngModel)]="serviceForm.area" placeholder="e.g. Gachibowli" />
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Latitude</label>
+              <input type="number" [(ngModel)]="serviceForm.latitude" placeholder="17.4400" step="any" />
+            </div>
+            <div class="form-group">
+              <label>Longitude</label>
+              <input type="number" [(ngModel)]="serviceForm.longitude" placeholder="78.3489" step="any" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Features -->
+        <div class="form-section">
+          <h3 class="form-section-title">Service Features</h3>
+          <div class="tag-input-row">
+            <input type="text" [(ngModel)]="newFeature" placeholder="e.g. Eco-friendly products"
+                   (keyup.enter)="addFeature()" />
+            <button class="btn-add" (click)="addFeature()">Add</button>
+          </div>
+          <div class="tag-list">
+            @for (f of serviceForm.features; track $index; let i = $index) {
+              <span class="feature-tag">{{ f }} <button (click)="removeFeature(i)">×</button></span>
+            }
+            @if (serviceForm.features.length === 0) {
+              <span class="tag-hint">No features added yet</span>
+            }
+          </div>
+        </div>
+
+        <!-- Images -->
+        <div class="form-section">
+          <h3 class="form-section-title">Images</h3>
+          <div class="tag-input-row">
+            <input type="text" [(ngModel)]="newImageUrl" placeholder="Paste image URL..." />
+            <button class="btn-add" (click)="addImage()">Add</button>
+          </div>
+          <div class="image-preview-grid">
+            @for (img of serviceForm.images; track $index; let i = $index) {
+              <div class="img-thumb-wrap" [class.primary]="img.isPrimary">
+                <img [src]="img.url" alt="preview" (error)="removeImage(i)" />
+                <div class="img-controls">
+                  <button (click)="setPrimary(i)" [disabled]="img.isPrimary" class="btn-primary-tag">
+                    {{ img.isPrimary ? '★ Primary' : 'Set Primary' }}
+                  </button>
+                  <button (click)="removeImage(i)" class="btn-remove-img">✕</button>
+                </div>
+              </div>
+            }
+            @if (serviceForm.images.length === 0) {
+              <span class="tag-hint">No images added yet</span>
+            }
           </div>
         </div>
       </div>
-    </div>
+
+      <div class="form-footer">
+        <button class="btn-secondary" (click)="switchTab('listings')">Cancel</button>
+        <button class="btn-primary btn-lg" (click)="submitService()" [disabled]="formSubmitting">
+          {{ formSubmitting ? 'Saving…' : (activeTab === 'edit' ? 'Update Service' : 'Create Service') }}
+        </button>
+      </div>
+    }
+
   </main>
 </div>

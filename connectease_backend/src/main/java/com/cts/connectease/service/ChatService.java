@@ -43,12 +43,14 @@ public class ChatService {
         // 3. Map to DTO
         ChatSessionResponse response = new ChatSessionResponse();
         response.setSessionId(session.getSessionId());
+        response.setCurrentUserId(currentUserId);
         response.setParticipantName(targetUser.getFullName());
         response.setParticipantImage(targetUser.getImage());
 
         List<ChatMessageDto> messageDtos = history.stream().map(msg -> {
             ChatMessageDto dto = new ChatMessageDto();
             dto.setMessageId(msg.getMessageId());
+            dto.setSessionId(session.getSessionId());
             dto.setSenderId(msg.getSender().getUid());
             dto.setSenderName(msg.getSender().getFullName());
             dto.setSenderImage(msg.getSender().getImage());
@@ -79,13 +81,37 @@ public class ChatService {
         // Map back to DTO to broadcast over WebSocket
         ChatMessageDto dto = new ChatMessageDto();
         dto.setMessageId(savedMsg.getMessageId());
+        dto.setSessionId(request.getSessionId());
         dto.setSenderId(sender.getUid());
         dto.setSenderName(sender.getFullName());
         dto.setSenderImage(sender.getImage());
         dto.setContent(savedMsg.getContent());
-
         dto.setCreatedAt(savedMsg.getCreatedAt().toString());
 
         return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public List<ChatSessionSummaryDTO> getSessionsForUser(String userId) {
+        return sessionRepo.findAllSessionsForUser(userId).stream().map(session -> {
+            boolean isCustomer = session.getCustomer().getUid().equals(userId);
+            User participant = isCustomer ? session.getVendor() : session.getCustomer();
+
+            List<ChatMessage> messages = session.getMessages();
+            String lastMsg = "";
+            if (messages != null && !messages.isEmpty()) {
+                lastMsg = messages.get(messages.size() - 1).getContent();
+            }
+
+            return ChatSessionSummaryDTO.builder()
+                    .sessionId(session.getSessionId())
+                    .participantName(participant.getFullName())
+                    .participantImage(participant.getImage())
+                    .participantId(participant.getUid())
+                    .lastMessage(lastMsg)
+                    .startedAt(session.getStartedAt() != null ? session.getStartedAt().toString() : "")
+                    .messageCount(messages != null ? messages.size() : 0)
+                    .build();
+        }).collect(Collectors.toList());
     }
 }

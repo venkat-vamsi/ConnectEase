@@ -28,8 +28,13 @@ public class ProductController {
 
     @GetMapping("/{sid}")
     public ServiceDetailsDTO getService(@PathVariable String sid) {
-        // This now receives the clean DTO from the service
         return productService.getServiceDetails(sid);
+    }
+
+    @PostMapping("/{sid}/view")
+    public ResponseEntity<Void> incrementView(@PathVariable String sid) {
+        productService.incrementViews(sid);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/vendor/{vendorId}")

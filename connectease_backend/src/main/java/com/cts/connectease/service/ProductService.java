@@ -35,6 +35,14 @@ public class ProductService {
     @Autowired
     private UserRepository userRepository;
 
+    @Transactional
+    public void incrementViews(String sid) {
+        productRepository.findById(sid).ifPresent(service -> {
+            service.setTotalViews((service.getTotalViews() == null ? 0L : service.getTotalViews()) + 1);
+            productRepository.save(service);
+        });
+    }
+
     @Transactional(readOnly = true)
     public ServiceDetailsDTO getServiceDetails(String sid) {
         ServiceEntity service = productRepository.findById(sid)
@@ -55,9 +63,9 @@ public class ProductService {
         if (service.getRatings() != null) {
             reviewDTOs = service.getRatings().stream()
                     .map(r -> ReviewDTO.builder()
+                            .rid(r.getRid())
                             .userName(r.getUser() != null ? r.getUser().getFullName() : "Anonymous")
-                            // If you added profileImage to ReviewDTO, map it here:
-                            // .profileImage(r.getUser() != null ? r.getUser().getImage() : null)
+                            .profileImage(r.getUser() != null ? r.getUser().getImage() : null)
                             .review(r.getReview())
                             .score(r.getScore() != null ? r.getScore() : 0)
                             .build())
@@ -82,6 +90,8 @@ public class ProductService {
                 .price(service.getPrice())
                 .totalViews(service.getTotalViews())
                 .vendorName(service.getVendor() != null ? service.getVendor().getFullName() : "Unknown")
+                .vendorId(service.getVendor() != null ? service.getVendor().getUid() : null)
+                .categoryName(service.getCategory() != null ? service.getCategory().getName() : null)
                 .averageRating(Math.round(avgRating * 10.0) / 10.0)
                 .reviews(reviewDTOs)
                 .images(imageDTOs)

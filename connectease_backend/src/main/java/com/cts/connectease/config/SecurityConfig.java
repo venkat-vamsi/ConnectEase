@@ -45,13 +45,15 @@ public class SecurityConfig {
                         // 1. MUST ADD THIS: Let browser preflight checks pass through!
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Public - ADDED THE AI CHAT ENDPOINT HERE!
+                        // Public
                         .requestMatchers("/api/auth/**", "/api/v1/listings/filter", "/ws-chat/**", "/api/v1/ai-chat/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/services/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/community/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/ratings/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/locations/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/services/*/view").permitAll()
 
                         // Protected
                         .requestMatchers(HttpMethod.POST, "/api/services/*/reviews").authenticated()

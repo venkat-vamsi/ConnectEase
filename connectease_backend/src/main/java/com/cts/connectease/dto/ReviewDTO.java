@@ -7,6 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class ReviewDTO {
+    private String rid;
     private String userName;
     private String profileImage;
     private String review;

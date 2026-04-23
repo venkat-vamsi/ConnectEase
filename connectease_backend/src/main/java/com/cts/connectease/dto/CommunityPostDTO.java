@@ -13,6 +13,7 @@ public class CommunityPostDTO {
     private String title;
     private String description;
     private String image;
+    private String category;
     private LocalDateTime time;
     private String authorFullName;
 }

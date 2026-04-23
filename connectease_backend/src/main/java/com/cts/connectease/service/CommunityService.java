@@ -39,6 +39,7 @@ public class CommunityService {
         if (updatePayload.getTitle() != null) existing.setTitle(updatePayload.getTitle());
         if (updatePayload.getDescription() != null) existing.setDescription(updatePayload.getDescription());
         if (updatePayload.getImage() != null) existing.setImage(updatePayload.getImage());
+        if (updatePayload.getCategory() != null) existing.setCategory(updatePayload.getCategory());
         return toDto(communityRepository.save(existing));
     }
 
@@ -66,6 +67,7 @@ public class CommunityService {
                 .title(post.getTitle())
                 .description(post.getDescription())
                 .image(post.getImage())
+                .category(post.getCategory())
                 .time(post.getTime())
                 .authorFullName(post.getUser() != null ? post.getUser().getFullName() : "Unknown")
                 .build();

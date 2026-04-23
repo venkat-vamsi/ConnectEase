@@ -1,4 +1,4 @@
-import { Component, inject , OnInit} from '@angular/core';
+import { Component, OnInit, inject, HostListener } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth';
@@ -6,34 +6,38 @@ import { AuthService } from '../../core/services/auth';
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink,CommonModule],
+  imports: [RouterLink, CommonModule],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.css']
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
   authService = inject(AuthService);
   private router = inject(Router);
+
   isLoggedIn = false;
+  showDropdown = false;
+
   ngOnInit() {
-    // Automatically updates 'isLoggedIn' whenever the service broadcasts a change
-    this.authService.isLoggedIn$.subscribe(status => {
-      this.isLoggedIn = status;
-    });
+    this.authService.isLoggedIn$.subscribe(status => { this.isLoggedIn = status; });
   }
 
-  // Checks if the logged-in user is a vendor
-  isVendor(): boolean {
-    return localStorage.getItem('role') === 'vendor';
+  isVendor(): boolean { return localStorage.getItem('role') === 'vendor'; }
+  getInitial(): string { return (localStorage.getItem('fullName') || 'U').charAt(0).toUpperCase(); }
+  getFullName(): string { return localStorage.getItem('fullName') || 'User'; }
+
+  toggleDropdown() { this.showDropdown = !this.showDropdown; }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.profile-container')) this.showDropdown = false;
   }
 
   logout() {
+    this.showDropdown = false;
     this.authService.logout().subscribe({
-      next: () => {
-        localStorage.clear();
-        this.router.navigate(['/login']);
-      },
+      next: () => this.router.navigate(['/login']),
       error: () => {
-        // Fallback if server call fails
         localStorage.clear();
         this.authService.updateAuthStatus(false);
         this.router.navigate(['/login']);
