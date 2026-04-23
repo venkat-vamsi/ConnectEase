@@ -9,4 +9,67 @@
 .nav-links a:hover { color: var(--ce-blue); }
 .nav-actions { display: flex; align-items: center; gap: 15px; }
 .btn-emergency { background: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; }
-.profile-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--ce-purple); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+/* Keep your existing .navbar, .logo, etc. and add/update these: */
+
+.profile-container {
+  display: flex;
+  align-items: center;
+}
+
+.profile-action {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  height: 42px;
+  width: 42px; /* Circle state */
+  border-radius: 21px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: #f1f5f9;
+  color: #64748b;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.icon-circle {
+  min-width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.action-text {
+  opacity: 0;
+  font-weight: 600;
+  font-size: 14px;
+  padding-right: 15px;
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+/* Hover common - expands the pill */
+.profile-action:hover {
+  width: 125px; 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  color: white;
+}
+
+.profile-action:hover .action-text {
+  opacity: 1;
+}
+
+/* Sign In Colors (Blue) */
+.profile-action.sign-in:hover {
+  background: #2563eb; 
+}
+
+/* Sign Out Colors (Red - Matches your screenshot) */
+.profile-action.sign-out {
+  background: #6d28d9; /* Starts purple when logged in */
+  color: white;
+}
+
+.profile-action.sign-out:hover {
+  background: #ef4444; /* Turns red on hover */
+}

@@ -1,27 +1,128 @@
 <div class="community-container">
-  <div class="text-center">
-    <h1>Real Stories from Chennai Migrants</h1>
-    <p>Discover authentic experiences shared by people who moved to Chennai.</p>
+  <div class="page-header">
+    <div class="header-text">
+      <h1>Real Stories from Chennai Migrants</h1>
+      <p>Authentic experiences shared by people who moved to Chennai.</p>
+    </div>
+    <button class="btn-post" (click)="openModal()">
+      <span class="btn-icon">✏️</span> Share Your Story
+    </button>
   </div>
-  <div class="filter-pills">
-    <span>♈ Filter:</span>
-    @for (cat of categories; track cat) {
-      <button class="pill" [class.active]="activeCategory === cat" (click)="filter(cat)">{{ cat }}</button>
-    }
+
+  <div class="filter-row">
+    <div class="filter-pills">
+      <button *ngFor="let cat of categories" 
+              class="pill" 
+              [class.active]="activeCategory === cat" 
+              (click)="filter(cat)">
+        {{ cat }}
+      </button>
+    </div>
   </div>
+
   <div class="posts-grid">
-    @for (post of posts; track post.postId) {
-      <div class="post-card">
-        <div class="post-image"><span class="category-tag">Experience</span></div>
-        <div class="post-content">
-          <div class="author-info">
+    <div class="post-card" *ngFor="let post of filteredPosts">
+      <div class="post-image" [style.backgroundImage]="post.image ? 'url(' + post.image + ')' : 'url(assets/placeholder.jpg)'">
+        <span class="category-tag">{{ post.category }}</span>
+      </div>
+      <div class="post-content">
+        <div class="author-row">
+          <div class="author-left">
             <div class="avatar">{{ post.authorFullName.charAt(0) }}</div>
-            <div><h4>{{ post.authorFullName }}</h4><span class="date">{{ post.time | date:'mediumDate' }}</span></div>
+            <div>
+              <h4>{{ post.authorFullName }}</h4>
+              <span class="date">{{ post.time | date:'mediumDate' }}</span>
+            </div>
           </div>
-          <h3 class="post-title">{{ post.title }}</h3>
-          <p class="post-desc">{{ post.description }}</p>
+          <div class="stars">
+            <span *ngFor="let s of getStars(post.rating)" 
+                  [class]="s === 'full' ? 'star filled' : 'star empty'">★</span>
+          </div>
+        </div>
+        <h3 class="post-title">{{ post.title }}</h3>
+        <p class="post-desc">{{ post.description }}</p>
+        <div class="post-footer">
+          <button class="btn-helpful" (click)="markHelpful(post)">
+            👍 {{ post.helpful || 0 }} helpful
+          </button>
         </div>
       </div>
-    }
+    </div>
+
+    <div class="empty-state" *ngIf="filteredPosts.length === 0">
+      <p>No posts found in this category. Be the first to share!</p>
+    </div>
   </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Share Your Story</h2>
+      <button class="modal-close" (click)="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Story Title *</label>
+        <input type="text" [(ngModel)]="newPost.title" placeholder="e.g. Best PG in Velachery" />
+      </div>
+
+      <div class="form-group">
+        <label>Category *</label>
+        <div class="category-select-grid">
+          <button *ngFor="let cat of postCategories" 
+                  class="cat-chip" 
+                  [class.selected]="newPost.category === cat" 
+                  (click)="newPost.category = cat">
+            {{ getCategoryIcon(cat) }} {{ cat }}
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Rating *</label>
+        <div class="star-picker">
+          <span *ngFor="let n of [1,2,3,4,5]" 
+                class="star-pick"
+                [class.lit]="n <= newPost.rating"
+                (click)="newPost.rating = n"
+                (mouseenter)="hoverRating = n"
+                (mouseleave)="hoverRating = 0">★</span>
+          <span class="rating-label">{{ getRatingLabel(newPost.rating) }}</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Your Experience *</label>
+        <textarea [(ngModel)]="newPost.description" rows="4" placeholder="Tell us more..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Image URL (Optional)</label>
+        <input type="text" 
+               [(ngModel)]="imageUrlInput" 
+               placeholder="Paste image link here..." 
+               class="url-input" />
+        
+        <div class="url-preview" *ngIf="imageUrlInput">
+          <img [src]="imageUrlInput" alt="Preview" (error)="imageUrlInput = ''" />
+          <p *ngIf="imageUrlInput">Image Preview</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+      <button class="btn-submit" 
+              (click)="submitPost()" 
+              [disabled]="!isFormValid() || submitting">
+        {{ submitting ? 'Posting...' : '🚀 Post Story' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" *ngIf="showToast">
+  Story posted successfully!
 </div>
