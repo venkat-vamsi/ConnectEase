@@ -19,7 +19,7 @@ export class ServiceDetailsComponent implements OnInit {
   error: string | null = null;
 
   ngOnInit() {
-    const serviceId = this.route.snapshot.paramMap['id'];
+    const serviceId = this.route.snapshot.paramMap.get('id');
     this.loadServiceDetails(serviceId);
   }
 
