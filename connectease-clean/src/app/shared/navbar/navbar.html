@@ -3,19 +3,61 @@
     <div class="logo-icon">CE</div>
     <div class="logo-text">
       <span class="brand">ConnectEase</span>
-      <span class="city">Chennai</span>
     </div>
   </div>
+
   <div class="nav-links">
-  <a routerLink="/ai-chat">Find Services</a>
-  <a routerLink="/community">Community</a>
-  
-  @if (isVendor()) {
-    <a routerLink="/vendor/dashboard">Vendor Studio</a>
-  }
-</div>
+    <a routerLink="/services" routerLinkActive="active">Browse</a>
+    <a routerLink="/ai-chat" routerLinkActive="active">AI Search</a>
+    <a routerLink="/community" routerLinkActive="active">Community</a>
+    @if (isLoggedIn) {
+      <a routerLink="/chats" routerLinkActive="active" class="chats-link">
+        💬 Chats
+      </a>
+    }
+    @if (isLoggedIn && isVendor()) {
+      <a routerLink="/vendor/dashboard" routerLinkActive="active">Vendor Studio</a>
+    }
+  </div>
+
   <div class="nav-actions">
-    <button class="btn-emergency"><span>!</span> Emergency</button>
-    <div class="profile-menu" routerLink="/login"><div class="profile-icon">👤</div></div>
+    @if (!isLoggedIn) {
+      <a class="btn-signin" routerLink="/login">Sign In</a>
+      <a class="btn-signup" routerLink="/signup">Get Started</a>
+    } @else {
+      <div class="profile-container" (click)="toggleDropdown()">
+        <div class="avatar-btn">{{ getInitial() }}</div>
+        <span class="user-name">{{ getFullName() }}</span>
+        <span class="chevron" [class.open]="showDropdown">▾</span>
+
+        @if (showDropdown) {
+          <div class="dropdown-menu">
+            <div class="dropdown-header">
+              <div class="dh-avatar">{{ getInitial() }}</div>
+              <div>
+                <strong>{{ getFullName() }}</strong>
+                <span>{{ isVendor() ? 'Vendor Account' : 'Customer Account' }}</span>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" routerLink="/profile" (click)="showDropdown = false">
+              👤 My Profile
+            </a>
+            <a class="dropdown-item" routerLink="/chats" (click)="showDropdown = false">
+              💬 My Chats
+            </a>
+            @if (isVendor()) {
+              <a class="dropdown-item" routerLink="/vendor/dashboard" (click)="showDropdown = false">
+                🏪 Vendor Studio
+              </a>
+            }
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item logout" (click)="logout()">
+              🚪 Sign Out
+            </button>
+          </div>
+        }
+      </div>
+    }
   </div>
 </nav>

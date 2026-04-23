@@ -1,9 +1,11 @@
 package com.cts.connectease.controller;
 
 import com.cts.connectease.dto.ChatSessionResponse;
+import com.cts.connectease.dto.ChatSessionSummaryDTO;
 import com.cts.connectease.dto.ChatMessageDto;
 import com.cts.connectease.dto.SendMessageRequest;
 import com.cts.connectease.model.ChatMessage;
+import java.util.List;
 import com.cts.connectease.service.ChatService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -42,17 +44,36 @@ public class ChatController {
         return ResponseEntity.ok(sessionData);
     }
 
-    // STEP 2: Angular sends live messages here via WebSockets
+    // REST endpoint for sending messages — uses HTTP cookie auth (reliable)
+    @PostMapping("/api/chat/{sessionId}/messages")
+    public ResponseEntity<ChatMessageDto> sendMessage(
+            @PathVariable String sessionId,
+            @RequestBody SendMessageRequest request,
+            Authentication authentication) {
+        String senderId = authentication != null && authentication.getCredentials() != null
+                ? authentication.getCredentials().toString()
+                : null;
+        request.setSessionId(sessionId);
+        ChatMessageDto saved = chatService.saveMessage(senderId, request);
+        messagingTemplate.convertAndSend("/topic/session/" + sessionId, saved);
+        return ResponseEntity.ok(saved);
+    }
+
+    // STOMP fallback (kept for compatibility, not used by frontend anymore)
     @MessageMapping("/chat.sendMessage")
     public void receiveAndBroadcastMessage(@Payload SendMessageRequest request, Authentication authentication) {
         String senderId = authentication != null && authentication.getCredentials() != null
                 ? authentication.getCredentials().toString()
                 : null;
-
-        // Save to Database
         ChatMessageDto savedMessage = chatService.saveMessage(senderId, request);
-
-        // Broadcast the message instantly to anyone subscribed to this specific session
         messagingTemplate.convertAndSend("/topic/session/" + request.getSessionId(), savedMessage);
+    }
+
+    @GetMapping("/api/chat/sessions")
+    public ResponseEntity<List<ChatSessionSummaryDTO>> getMySessions(Authentication authentication) {
+        String currentUserId = authentication != null && authentication.getCredentials() != null
+                ? authentication.getCredentials().toString()
+                : null;
+        return ResponseEntity.ok(chatService.getSessionsForUser(currentUserId));
     }
 }

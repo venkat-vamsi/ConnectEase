@@ -1,8 +1,26 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router'; // Added Router
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common'; // Required for @if and @for
+import { CommonModule } from '@angular/common';
+
+interface Listing {
+  sid: string;
+  name: string;
+  description: string;
+  price: number;
+  categoryName: string;
+  city: string;
+  area: string;
+  primaryImageUrl: string | null;
+  averageRating?: number;
+  totalViews?: number;
+}
+
+interface Category {
+  cid: string;
+  name: string;
+}
 
 @Component({
   selector: 'app-listings',
@@ -14,20 +32,24 @@ import { CommonModule } from '@angular/common'; // Required for @if and @for
 export class ListingsComponent implements OnInit {
   private http = inject(HttpClient);
   private route = inject(ActivatedRoute);
-  private router = inject(Router); // Injected Router
+  private router = inject(Router);
 
-  services: any[] = [];
-  categoryName = 'All Services';
-  selectedCategoryId = ''; // Tracks active tab for UI highlight
+  services: Listing[] = [];
+  totalElements = 0;
+  loading = false;
+  selectedCategoryId = '';
 
-  // Professional Category Data
-  categories = [
-    { id: 'pg', name: 'PGs/Hostels', icon: '🏠', count: '1247' },
-    { id: 'food', name: 'Food Services', icon: '🍽️', count: '856' },
-    { id: 'electrician', name: 'Electricians', icon: '⚡', count: '432' },
-    { id: 'plumber', name: 'Plumbers', icon: '🔧', count: '389' },
-    { id: 'cleaner', name: 'Cleaners', icon: '🧹', count: '567' },
-    { id: 'laundry', name: 'Laundry', icon: '👔', count: '312' }
+  cities: string[] = [];
+  areas: string[] = [];
+
+  private readonly iconMap: Record<string, string> = {
+    pg: '🏠', hostel: '🏠', food: '🍽️', restaurant: '🍽️', electrician: '⚡',
+    electric: '⚡', plumber: '🔧', plumbing: '🔧', clean: '🧹', laundry: '👔',
+    transport: '🚗', beauty: '💆', salon: '✂️', tutor: '📚', repair: '🔩', default: '🔵'
+  };
+
+  categories: { id: string; name: string; icon: string }[] = [
+    { id: '', name: 'All Services', icon: '🏘️' }
   ];
 
   filters = {
@@ -39,24 +61,96 @@ export class ListingsComponent implements OnInit {
     minRating: null as number | null,
     sortType: 'newest',
     page: 0,
-    size: 10
+    size: 12
   };
 
+  vendorMode = false;
+  vendorIdFilter = '';
+
   ngOnInit() {
-    // Listen to query parameters to handle external navigation or refreshes
+    this.loadCities();
+    this.loadCategories();
     this.route.queryParams.subscribe(params => {
-      this.filters.categoryId = params['categoryId'] || '';
-      this.selectedCategoryId = this.filters.categoryId;
-      this.fetchFilteredResults();
+      const vendorId = params['vendor'] || '';
+      if (vendorId) {
+        this.vendorMode = true;
+        this.vendorIdFilter = vendorId;
+        this.fetchVendorServices(vendorId);
+      } else {
+        this.vendorMode = false;
+        this.vendorIdFilter = '';
+        this.filters.categoryId = params['categoryId'] || '';
+        this.selectedCategoryId = this.filters.categoryId;
+        this.fetchFilteredResults();
+      }
     });
   }
 
-  // Navbar specific function
+  fetchVendorServices(vendorId: string) {
+    this.loading = true;
+    this.http.get<Listing[]>(`/api/services/vendor/${vendorId}`).subscribe({
+      next: (res) => {
+        this.services = res;
+        this.totalElements = res.length;
+        this.loading = false;
+      },
+      error: () => {
+        this.services = [];
+        this.loading = false;
+      }
+    });
+  }
+
+  getPriceUnit(categoryName: string): string {
+    const lower = (categoryName || '').toLowerCase();
+    if (lower.includes('pg') || lower.includes('hostel') || lower.includes('room')) return '/room·month';
+    return '/service';
+  }
+
+  loadCategories() {
+    this.http.get<Category[]>('/api/categories').subscribe({
+      next: (res) => {
+        this.categories = [
+          { id: '', name: 'All Services', icon: '🏘️' },
+          ...res.map(cat => ({ id: cat.cid, name: cat.name, icon: this.getCategoryIcon(cat.name) }))
+        ];
+      },
+      error: () => {}
+    });
+  }
+
+  private getCategoryIcon(name: string): string {
+    const lower = name.toLowerCase();
+    for (const [key, icon] of Object.entries(this.iconMap)) {
+      if (lower.includes(key)) return icon;
+    }
+    return this.iconMap['default'];
+  }
+
+  loadCities() {
+    this.http.get<string[]>('/api/locations/cities').subscribe({
+      next: (res) => { this.cities = res; },
+      error: () => { this.cities = ['Hyderabad', 'Chennai', 'Bangalore', 'Mumbai', 'Pune']; }
+    });
+  }
+
+  onCityChange() {
+    this.filters.area = '';
+    this.areas = [];
+    if (this.filters.city) {
+      this.http.get<string[]>(`/api/locations/cities/${this.filters.city}/areas`).subscribe({
+        next: (res) => { this.areas = res; },
+        error: () => { this.areas = []; }
+      });
+    }
+    this.fetchFilteredResults();
+  }
+
   filterByCategory(id: string) {
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { categoryId: id || null }, // Use null to remove the param for 'All Services'
-      queryParamsHandling: 'merge' // Keeps city/area/price filters intact
+      queryParams: { categoryId: id || null },
+      queryParamsHandling: 'merge'
     });
   }
 
@@ -66,33 +160,26 @@ export class ListingsComponent implements OnInit {
   }
 
   fetchFilteredResults() {
+    this.loading = true;
     let params = new HttpParams();
-    
-    // Add all active filters to request
     Object.entries(this.filters).forEach(([key, value]) => {
-      if (value !== null && value !== '') {
-        params = params.set(key, value.toString());
-      }
+      if (value !== null && value !== '') params = params.set(key, value.toString());
     });
 
     this.http.get<any>('/api/v1/listings/filter', { params }).subscribe({
       next: (res) => {
-        this.services = res.content;
-        // Set Header Title based on category
-        const currentCat = this.categories.find(c => c.id === this.filters.categoryId);
-        this.categoryName = currentCat ? currentCat.name : 'All Services';
+        this.services = res.content || [];
+        this.totalElements = res.totalElements || 0;
+        this.loading = false;
       },
-      error: (err) => {
-        console.error('Backend error:', err);
-        this.loadMockData();
+      error: () => {
+        this.services = [];
+        this.loading = false;
       }
     });
   }
 
-  loadMockData() {
-    this.services = [
-      { sid: '1', name: 'Sunshine PG for Women', price: 8500, categoryName: 'PGs', trustScore: 94, verified: true, area: 'Adyar', city: 'Chennai', rating: 4.8, reviews: 127 },
-      { sid: '2', name: 'Royal Boys Hostel', price: 7000, categoryName: 'Hostels', trustScore: 88, verified: true, area: 'Velachery', city: 'Chennai', rating: 4.5, reviews: 89 }
-    ];
+  getStarArray(rating: number = 0): ('full' | 'empty')[] {
+    return Array.from({ length: 5 }, (_, i) => i < Math.round(rating) ? 'full' : 'empty');
   }
 }

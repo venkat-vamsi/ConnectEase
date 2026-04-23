@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Client, Message } from '@stomp/stompjs';
+import { Client, Message, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { Subject } from 'rxjs';
 
@@ -11,28 +11,43 @@ export class ChatService {
   public messages$ = new Subject<any>();
   public currentSessionId = '';
   public isChatOpen = false;
+  private sessionSub?: StompSubscription;
 
   initConnection() {
+    if (this.client) {
+      this.client.deactivate();
+    }
     this.client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:9090/ws-chat/websocket'),
+      webSocketFactory: () => new SockJS(window.location.origin + '/ws-chat'),
       reconnectDelay: 5000,
       onConnect: () => {
+        this.isChatOpen = true;
         if (this.currentSessionId) {
-          this.client.subscribe(`/topic/session/${this.currentSessionId}`, (msg: Message) => {
-            this.messages$.next(JSON.parse(msg.body));
-          });
+          this._doSubscribe(this.currentSessionId);
         }
-      }
+      },
+      onDisconnect: () => { this.isChatOpen = false; }
     });
     this.client.activate();
   }
 
-  startChat(vendorId: string) {
-    this.http.get<any>(`/api/chat/start/${vendorId}`, { withCredentials: true }).subscribe(res => {
-      this.currentSessionId = res.sessionId;
-      this.isChatOpen = true;
+  subscribeToSession(sessionId: string) {
+    this.currentSessionId = sessionId;
+    if (this.client?.connected) {
+      this._doSubscribe(sessionId);
+    } else if (!this.isChatOpen) {
+      // Not connected at all — initiate connection (onConnect will subscribe)
       this.initConnection();
-    });
+    }
+    // If connected=false but isChatOpen=true → reconnecting, onConnect will subscribe
+  }
+
+  private _doSubscribe(sessionId: string) {
+    this.sessionSub?.unsubscribe();
+    this.sessionSub = this.client.subscribe(
+      `/topic/session/${sessionId}`,
+      (msg: Message) => { this.messages$.next(JSON.parse(msg.body)); }
+    );
   }
 
   sendMessage(content: string) {
@@ -45,7 +60,8 @@ export class ChatService {
   }
 
   closeChat() {
+    this.sessionSub?.unsubscribe();
     this.isChatOpen = false;
-    if(this.client) this.client.deactivate();
+    if (this.client) this.client.deactivate();
   }
 }

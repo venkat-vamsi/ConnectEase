@@ -21,7 +21,7 @@ export interface AIChatResponse {
 @Injectable({ providedIn: 'root' })
 export class AiChatService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8081/api/v1/ai-chat/ask'; // Ensure this matches your Spring Boot controller
+  private apiUrl = '/api/v1/ai-chat/ask';
 
   askAssistant(query: string): Observable<AIChatResponse> {
     return this.http.post<AIChatResponse>(this.apiUrl, { query }).pipe(

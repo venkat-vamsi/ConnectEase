@@ -1,0 +1,1667 @@
+openapi: 3.0.3
+
+info:
+  title: ConnectEase API
+  description: >
+    REST API for ConnectEase — a service marketplace connecting customers with
+    vendors for home services, PGs, food, electrical, plumbing, cleaning, and laundry.
+
+    **Authentication:** All protected endpoints read a JWT from an HttpOnly cookie
+    named `jwt`. Call `POST /api/auth/signin` first — the cookie is set automatically.
+
+    **Roles:**
+    - `customer` — can browse, review, chat, post to community
+    - `vendor`   — same as customer plus full service listing management (`/api/vendor/**`)
+  version: 1.0.0
+  contact:
+    name: ConnectEase Team
+
+servers:
+  - url: http://localhost:8081
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: Register, login, logout
+  - name: Users
+    description: User profile management
+  - name: Listings
+    description: Advanced filtered service search
+  - name: Services
+    description: Public service browsing and reviews
+  - name: Vendor
+    description: Vendor-only service management (requires VENDOR role)
+  - name: Ratings
+    description: Paginated reviews and review deletion
+  - name: Community
+    description: Community post feed
+  - name: Chat
+    description: Real-time chat session management
+  - name: AI Chat
+    description: Natural language service discovery via Gemini
+  - name: Locations
+    description: City and area lookup for filter dropdowns
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SECURITY
+# ─────────────────────────────────────────────────────────────────────────────
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: jwt
+      description: >
+        HttpOnly JWT cookie set by POST /api/auth/signin.
+        In Swagger UI click "Authorize", paste the raw JWT value.
+        In Postman the cookie is stored automatically after login.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SCHEMAS
+# ─────────────────────────────────────────────────────────────────────────────
+  schemas:
+
+    # ── Primitives / shared ──────────────────────────────────────────────────
+
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Operation completed successfully
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Detailed error description
+
+    # ── Auth ─────────────────────────────────────────────────────────────────
+
+    SignupRequest:
+      type: object
+      required:
+        - fullName
+        - email
+        - password
+      properties:
+        fullName:
+          type: string
+          example: Ravi Kumar
+        email:
+          type: string
+          format: email
+          example: ravi@example.com
+        password:
+          type: string
+          example: ravi1234
+        role:
+          type: string
+          enum: [customer, vendor]
+          default: customer
+          example: customer
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: ravi@example.com
+        password:
+          type: string
+          example: ravi1234
+
+    LoginResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: login successful
+        role:
+          type: string
+          enum: [customer, vendor]
+          example: customer
+        uid:
+          type: string
+          example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+
+    # ── Users ────────────────────────────────────────────────────────────────
+
+    UserProfileDTO:
+      type: object
+      properties:
+        uid:
+          type: string
+          example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+        fullName:
+          type: string
+          example: Ravi Kumar
+        email:
+          type: string
+          example: ravi@example.com
+        phoneNo:
+          type: string
+          nullable: true
+          example: "9876543210"
+        image:
+          type: string
+          nullable: true
+          example: https://cdn.example.com/avatars/ravi.jpg
+        role:
+          type: string
+          enum: [customer, vendor]
+          example: customer
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00"
+
+    UpdateProfileRequest:
+      type: object
+      description: All fields are optional. Only provided fields are updated.
+      properties:
+        fullName:
+          type: string
+          example: Ravi Kumar Updated
+        phoneNo:
+          type: string
+          example: "9123456789"
+        image:
+          type: string
+          example: https://cdn.example.com/avatars/ravi-new.jpg
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - oldPassword
+        - newPassword
+      properties:
+        oldPassword:
+          type: string
+          example: ravi1234
+        newPassword:
+          type: string
+          example: newSecurePass99
+
+    # ── Services / Listings ──────────────────────────────────────────────────
+
+    ImageDTO:
+      type: object
+      properties:
+        url:
+          type: string
+          example: https://cdn.example.com/services/cleaning1.jpg
+        isPrimary:
+          type: boolean
+          example: true
+
+    ReviewDTO:
+      type: object
+      properties:
+        userName:
+          type: string
+          example: Ravi Kumar
+        profileImage:
+          type: string
+          nullable: true
+          example: https://cdn.example.com/avatars/ravi.jpg
+        review:
+          type: string
+          example: Excellent service, very thorough!
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+
+    ListingCardDTO:
+      type: object
+      properties:
+        sid:
+          type: string
+          example: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+        name:
+          type: string
+          example: Home Deep Cleaning
+        description:
+          type: string
+          example: Professional full-home cleaning service
+        price:
+          type: number
+          format: double
+          example: 1500.00
+        categoryName:
+          type: string
+          example: cleaning service
+        city:
+          type: string
+          example: Hyderabad
+        area:
+          type: string
+          example: Gachibowli
+        primaryImageUrl:
+          type: string
+          nullable: true
+          example: https://cdn.example.com/services/cleaning.jpg
+
+    ServiceDetailsDTO:
+      type: object
+      properties:
+        sid:
+          type: string
+          example: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+        name:
+          type: string
+          example: Home Deep Cleaning
+        description:
+          type: string
+          example: Full home deep cleaning including kitchen and bathrooms
+        price:
+          type: number
+          format: double
+          example: 1500.00
+        totalViews:
+          type: integer
+          format: int64
+          example: 243
+        vendorName:
+          type: string
+          example: CleanPro Services
+        averageRating:
+          type: number
+          format: double
+          example: 4.3
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewDTO'
+        images:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ImageDTO'
+
+    ReviewRequestDTO:
+      type: object
+      required:
+        - score
+      properties:
+        review:
+          type: string
+          example: Great service, highly recommended!
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+
+    # ── Vendor ────────────────────────────────────────────────────────────────
+
+    CategoryRef:
+      type: object
+      required:
+        - cid
+      properties:
+        cid:
+          type: string
+          description: UUID of an existing category
+          example: cat-uuid-from-database
+
+    LocationInput:
+      type: object
+      properties:
+        address:
+          type: string
+          example: "123 Main Street"
+        city:
+          type: string
+          example: Hyderabad
+        area:
+          type: string
+          example: Gachibowli
+        latitude:
+          type: number
+          format: double
+          example: 17.44086700
+        longitude:
+          type: number
+          format: double
+          example: 78.34875100
+
+    FeatureInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Feature is created if it does not already exist (case-insensitive match)
+          example: Eco-friendly products
+
+    ServiceImageInput:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          example: https://cdn.example.com/services/cleaning1.jpg
+        isPrimary:
+          type: boolean
+          example: true
+
+    ServiceCreateRequest:
+      type: object
+      required:
+        - name
+        - price
+      properties:
+        name:
+          type: string
+          example: Home Deep Cleaning
+        description:
+          type: string
+          example: Full home deep cleaning including kitchen and bathrooms
+        price:
+          type: number
+          format: double
+          example: 1500.00
+        category:
+          $ref: '#/components/schemas/CategoryRef'
+        location:
+          $ref: '#/components/schemas/LocationInput'
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeatureInput'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceImageInput'
+
+    ServiceUpdateRequest:
+      type: object
+      description: All fields are optional. Only provided fields are updated.
+      properties:
+        name:
+          type: string
+          example: Premium Home Deep Cleaning
+        description:
+          type: string
+          example: Updated description with more detail
+        price:
+          type: number
+          format: double
+          example: 1800.00
+        category:
+          $ref: '#/components/schemas/CategoryRef'
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeatureInput'
+
+    VendorDashboardDTO:
+      type: object
+      properties:
+        vendorName:
+          type: string
+          example: CleanPro Services
+        activeListings:
+          type: integer
+          format: int64
+          example: 5
+        totalViews:
+          type: integer
+          format: int64
+          example: 1240
+        totalReviews:
+          type: integer
+          format: int64
+          example: 28
+        averageRating:
+          type: number
+          format: double
+          example: 4.2
+
+    # ── Community ─────────────────────────────────────────────────────────────
+
+    CommunityPostDTO:
+      type: object
+      properties:
+        postId:
+          type: string
+          example: p1b2c3d4-e5f6-7890-abcd-ef1234567890
+        title:
+          type: string
+          example: Best PG in Gachibowli?
+        description:
+          type: string
+          example: Looking for recommendations for a good PG near Cyber Gateway
+        image:
+          type: string
+          nullable: true
+          example: https://cdn.example.com/posts/pg-search.jpg
+        time:
+          type: string
+          format: date-time
+          example: "2025-03-10T14:22:00"
+        authorFullName:
+          type: string
+          example: Ravi Kumar
+
+    CommunityPostRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: Best electrician in Kondapur?
+        description:
+          type: string
+          example: Need a reliable electrician for full home wiring
+        image:
+          type: string
+          nullable: true
+          example: https://cdn.example.com/posts/electrician.jpg
+
+    # ── Chat ──────────────────────────────────────────────────────────────────
+
+    ChatMessageDto:
+      type: object
+      properties:
+        messageId:
+          type: string
+          example: m1a2b3c4-d5e6-7890-abcd-ef1234567890
+        senderId:
+          type: string
+          example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+        senderName:
+          type: string
+          example: Ravi Kumar
+        senderImage:
+          type: string
+          nullable: true
+          example: null
+        content:
+          type: string
+          example: Hi, is your service available this weekend?
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-03-10T15:30:00"
+
+    ChatSessionResponse:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          example: cs1b2c3d-e5f6-7890-abcd-ef1234567890
+        participantName:
+          type: string
+          example: CleanPro Services
+        participantImage:
+          type: string
+          nullable: true
+          example: https://cdn.example.com/avatars/cleanpro.jpg
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessageDto'
+
+    # ── AI Chat ───────────────────────────────────────────────────────────────
+
+    AIChatRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          example: I need a good PG in Gachibowli under 8000 rupees
+
+    AIChatResponse:
+      type: object
+      properties:
+        aiMessage:
+          type: string
+          example: "Here are the top PGs I found in Gachibowli within your budget:"
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListingCardDTO'
+
+    # ── Pagination wrappers ───────────────────────────────────────────────────
+
+    PageListingCardDTO:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListingCardDTO'
+        totalElements:
+          type: integer
+          example: 25
+        totalPages:
+          type: integer
+          example: 3
+        size:
+          type: integer
+          example: 10
+        number:
+          type: integer
+          description: Current page index (0-based)
+          example: 0
+        first:
+          type: boolean
+          example: true
+        last:
+          type: boolean
+          example: false
+
+    PageReviewDTO:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewDTO'
+        totalElements:
+          type: integer
+          example: 12
+        totalPages:
+          type: integer
+          example: 2
+        size:
+          type: integer
+          example: 10
+        number:
+          type: integer
+          example: 0
+        first:
+          type: boolean
+          example: true
+        last:
+          type: boolean
+          example: false
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PATHS
+# ─────────────────────────────────────────────────────────────────────────────
+
+paths:
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # AUTH
+  # ════════════════════════════════════════════════════════════════════════════
+
+  /api/auth/signup:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      operationId: signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            example:
+              fullName: Ravi Kumar
+              email: ravi@example.com
+              password: ravi1234
+              role: customer
+      responses:
+        '201':
+          description: Registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: success
+                message: User registered successfully
+        '400':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: error
+                message: "Error: Email already exists"
+
+  /api/auth/signin:
+    post:
+      tags: [Auth]
+      summary: Login — sets JWT HttpOnly cookie
+      operationId: signin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: ravi@example.com
+              password: ravi1234
+      responses:
+        '200':
+          description: Login successful. `jwt` cookie is set.
+          headers:
+            Set-Cookie:
+              description: "jwt=<token>; HttpOnly; Path=/; Max-Age=86400"
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                status: success
+                message: login successful
+                role: customer
+                uid: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: error
+                message: Invalid credentials
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout — clears JWT cookie
+      operationId: logout
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: success
+                message: Logged out successfully
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # USERS
+  # ════════════════════════════════════════════════════════════════════════════
+
+  /api/users/{uid}:
+    get:
+      tags: [Users]
+      summary: Get user profile (public)
+      operationId: getUserProfile
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+          example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+      responses:
+        '200':
+          description: User profile (password is never returned)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileDTO'
+              example:
+                uid: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                fullName: Ravi Kumar
+                email: ravi@example.com
+                phoneNo: "9876543210"
+                image: https://cdn.example.com/avatars/ravi.jpg
+                role: customer
+                createdAt: "2025-01-15T10:30:00"
+        '500':
+          description: User not found
+
+    put:
+      tags: [Users]
+      summary: Update own profile
+      operationId: updateProfile
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+          example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+            example:
+              fullName: Ravi Kumar Updated
+              phoneNo: "9123456789"
+              image: https://cdn.example.com/avatars/ravi-new.jpg
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileDTO'
+        '500':
+          description: User not found or trying to update another user's profile
+
+    delete:
+      tags: [Users]
+      summary: Delete own account
+      operationId: deleteAccount
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: success
+                message: Account deleted successfully
+        '500':
+          description: User not found or trying to delete another user's account
+
+  /api/users/{uid}/password:
+    put:
+      tags: [Users]
+      summary: Change own password
+      operationId: changePassword
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+            example:
+              oldPassword: ravi1234
+              newPassword: newSecurePass99
+      responses:
+        '200':
+          description: Password updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: success
+                message: Password updated successfully
+        '500':
+          description: Incorrect old password or unauthorized
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # LISTINGS (FILTER)
+  # ════════════════════════════════════════════════════════════════════════════
+
+  /api/v1/listings/filter:
+    get:
+      tags: [Listings]
+      summary: Filter and search services with pagination
+      operationId: filterServices
+      description: >
+        All query parameters are optional.
+        Sort options: `newest` (default), `price_asc`, `price_desc`.
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+          example: cat-uuid-here
+        - name: city
+          in: query
+          schema:
+            type: string
+          example: Hyderabad
+        - name: area
+          in: query
+          schema:
+            type: string
+          example: Gachibowli
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+          example: 500
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+          example: 5000
+        - name: minRating
+          in: query
+          schema:
+            type: number
+            format: double
+          example: 3.5
+        - name: maxRating
+          in: query
+          schema:
+            type: number
+            format: double
+          example: 5.0
+        - name: sortType
+          in: query
+          schema:
+            type: string
+            enum: [newest, price_asc, price_desc]
+            default: newest
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Paginated and filtered service cards
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageListingCardDTO'
+              example:
+                content:
+                  - sid: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    name: Home Deep Cleaning
+                    description: Professional full-home cleaning
+                    price: 1500.00
+                    categoryName: cleaning service
+                    city: Hyderabad
+                    area: Gachibowli
+                    primaryImageUrl: https://cdn.example.com/services/cleaning.jpg
+                totalElements: 1
+                totalPages: 1
+                size: 10
+                number: 0
+                first: true
+                last: true
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # SERVICES (PUBLIC)
+  # ════════════════════════════════════════════════════════════════════════════
+
+  /api/services:
+    get:
+      tags: [Services]
+      summary: Browse all services (paginated, sorted newest first)
+      operationId: getAllServices
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Paginated service cards
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageListingCardDTO'
+              example:
+                content:
+                  - sid: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    name: Home Deep Cleaning
+                    description: Professional full-home cleaning
+                    price: 1500.00
+                    categoryName: cleaning service
+                    city: Hyderabad
+                    area: Gachibowli
+                    primaryImageUrl: https://cdn.example.com/services/cleaning.jpg
+                totalElements: 25
+                totalPages: 3
+                size: 10
+                number: 0
+                first: true
+                last: false
+
+  /api/services/{sid}:
+    get:
+      tags: [Services]
+      summary: Get full service details (with reviews and images)
+      operationId: getServiceDetails
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: string
+          example: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+      responses:
+        '200':
+          description: Service detail page data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDetailsDTO'
+              example:
+                sid: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+                name: Home Deep Cleaning
+                description: Full home deep cleaning including kitchen and bathrooms
+                price: 1500.00
+                totalViews: 243
+                vendorName: CleanPro Services
+                averageRating: 4.3
+                reviews:
+                  - userName: Ravi Kumar
+                    profileImage: null
+                    review: Excellent service, very thorough!
+                    score: 5
+                  - userName: Priya Sharma
+                    profileImage: https://cdn.example.com/avatars/priya.jpg
+                    review: Good but slightly late
+                    score: 4
+                images:
+                  - url: https://cdn.example.com/services/cleaning1.jpg
+                    isPrimary: true
+                  - url: https://cdn.example.com/services/cleaning2.jpg
+                    isPrimary: false
+        '500':
+          description: Service not found
+
+  /api/services/vendor/{vendorId}:
+    get:
+      tags: [Services]
+      summary: Get all services listed by a specific vendor (public)
+      operationId: getServicesByVendor
+      parameters:
+        - name: vendorId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: b2c3d4e5-f6a7-8901-bcde-f12345678901
+      responses:
+        '200':
+          description: List of vendor services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ListingCardDTO'
+              example:
+                - sid: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+                  name: Home Deep Cleaning
+                  description: Professional full-home cleaning
+                  price: 1500.00
+                  categoryName: cleaning service
+                  city: Hyderabad
+                  area: Gachibowli
+                  primaryImageUrl: https://cdn.example.com/services/cleaning.jpg
+
+  /api/services/{sid}/reviews:
+    post:
+      tags: [Services]
+      summary: Add a review to a service
+      operationId: addReview
+      description: >
+        The `userId` field is ignored even if provided.
+        The server always uses the authenticated user's ID from the JWT cookie.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: string
+          example: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequestDTO'
+            example:
+              review: Great service, highly recommended!
+              score: 5
+      responses:
+        '200':
+          description: Review added
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: Review added successfully!
+        '401':
+          description: Unauthorized — must be logged in
+        '500':
+          description: Service not found
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # VENDOR (VENDOR ROLE REQUIRED)
+  # ════════════════════════════════════════════════════════════════════════════
+
+  /api/vendor/dashboard:
+    get:
+      tags: [Vendor]
+      summary: Get vendor dashboard statistics
+      operationId: getVendorDashboard
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Aggregated stats for the logged-in vendor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorDashboardDTO'
+              example:
+                vendorName: CleanPro Services
+                activeListings: 5
+                totalViews: 1240
+                totalReviews: 28
+                averageRating: 4.2
+        '403':
+          description: Forbidden — must be logged in as a vendor
+
+  /api/vendor/service/add:
+    post:
+      tags: [Vendor]
+      summary: Create a new service listing
+      operationId: createService
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCreateRequest'
+            example:
+              name: Home Deep Cleaning
+              description: Full home deep cleaning including kitchen and bathrooms
+              price: 1500.00
+              category:
+                cid: cat-uuid-from-database
+              location:
+                address: "123 Main Street"
+                city: Hyderabad
+                area: Gachibowli
+                latitude: 17.44086700
+                longitude: 78.34875100
+              features:
+                - name: Eco-friendly products
+                - name: 2-hour service
+              images:
+                - url: https://cdn.example.com/services/cleaning1.jpg
+                  isPrimary: true
+                - url: https://cdn.example.com/services/cleaning2.jpg
+                  isPrimary: false
+      responses:
+        '200':
+          description: Service created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDetailsDTO'
+              example:
+                sid: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+                name: Home Deep Cleaning
+                description: Full home deep cleaning including kitchen and bathrooms
+                price: 1500.00
+                totalViews: 0
+                vendorName: CleanPro Services
+                averageRating: 0.0
+                reviews: []
+                images: null
+        '403':
+          description: Forbidden — must be logged in as a vendor
+        '500':
+          description: Category or vendor not found
+
+  /api/vendor/services:
+    get:
+      tags: [Vendor]
+      summary: Get the logged-in vendor's own service listings
+      operationId: getMyServices
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Vendor's own listings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ListingCardDTO'
+              example:
+                - sid: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+                  name: Home Deep Cleaning
+                  description: Professional full-home cleaning
+                  price: 1500.00
+                  categoryName: cleaning service
+                  city: Hyderabad
+                  area: Gachibowli
+                  primaryImageUrl: https://cdn.example.com/services/cleaning1.jpg
+        '403':
+          description: Forbidden — must be logged in as a vendor
+
+  /api/vendor/service/{sid}:
+    put:
+      tags: [Vendor]
+      summary: Update a service listing
+      operationId: updateService
+      description: All fields are optional. Only provided fields are updated.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: string
+          example: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceUpdateRequest'
+            example:
+              name: Premium Home Deep Cleaning
+              description: Updated description with more detail
+              price: 1800.00
+              category:
+                cid: cat-uuid-from-database
+              features:
+                - name: Eco-friendly products
+                - name: 3-hour service
+                - name: Free follow-up visit
+      responses:
+        '200':
+          description: Updated service details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDetailsDTO'
+        '403':
+          description: Forbidden — must be logged in as a vendor
+        '500':
+          description: Service not found or trying to update another vendor's service
+
+    delete:
+      tags: [Vendor]
+      summary: Delete a service listing
+      operationId: deleteService
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: string
+          example: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+      responses:
+        '200':
+          description: Service deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: success
+                message: Service deleted successfully
+        '403':
+          description: Forbidden — must be logged in as a vendor
+        '500':
+          description: Service not found or trying to delete another vendor's service
+
+  /api/vendor/service/{sid}/status:
+    patch:
+      tags: [Vendor]
+      summary: Toggle service active/inactive status
+      operationId: toggleServiceStatus
+      description: >
+        Each call flips the current `active` flag.
+        First call → inactive. Second call → active again.
+        No request body needed.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: string
+          example: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+      responses:
+        '200':
+          description: Service with updated status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDetailsDTO'
+        '403':
+          description: Forbidden — must be logged in as a vendor
+        '500':
+          description: Service not found or unauthorized
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # RATINGS
+  # ════════════════════════════════════════════════════════════════════════════
+
+  /api/ratings/service/{sid}:
+    get:
+      tags: [Ratings]
+      summary: Get paginated reviews for a service
+      operationId: getServiceReviews
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: string
+          example: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Paginated reviews sorted newest first
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageReviewDTO'
+              example:
+                content:
+                  - userName: Ravi Kumar
+                    profileImage: null
+                    review: Excellent service!
+                    score: 5
+                  - userName: Priya Sharma
+                    profileImage: https://cdn.example.com/avatars/priya.jpg
+                    review: Good but slightly late
+                    score: 4
+                totalElements: 2
+                totalPages: 1
+                size: 10
+                number: 0
+                first: true
+                last: true
+        '500':
+          description: Service not found
+
+  /api/ratings/{rid}:
+    delete:
+      tags: [Ratings]
+      summary: Delete own review
+      operationId: deleteReview
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: rid
+          in: path
+          required: true
+          schema:
+            type: string
+          example: r1b2c3d4-e5f6-7890-abcd-ef1234567890
+      responses:
+        '200':
+          description: Review deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: success
+                message: Review deleted successfully
+        '401':
+          description: Unauthorized — must be logged in
+        '500':
+          description: Review not found or trying to delete another user's review
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # COMMUNITY
+  # ════════════════════════════════════════════════════════════════════════════
+
+  /api/community:
+    get:
+      tags: [Community]
+      summary: Get all community posts
+      operationId: getCommunityFeed
+      responses:
+        '200':
+          description: All community posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommunityPostDTO'
+              example:
+                - postId: p1b2c3d4-e5f6-7890-abcd-ef1234567890
+                  title: Best PG in Gachibowli?
+                  description: Looking for recommendations
+                  image: null
+                  time: "2025-03-10T14:22:00"
+                  authorFullName: Ravi Kumar
+
+    post:
+      tags: [Community]
+      summary: Create a new community post
+      operationId: createPost
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunityPostRequest'
+            example:
+              title: Best electrician in Kondapur?
+              description: Need a reliable electrician for full home wiring
+              image: https://cdn.example.com/posts/electrician.jpg
+      responses:
+        '200':
+          description: Created post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunityPostDTO'
+              example:
+                postId: p3d4e5f6-a7b8-9012-cdef-123456789012
+                title: Best electrician in Kondapur?
+                description: Need a reliable electrician for full home wiring
+                image: https://cdn.example.com/posts/electrician.jpg
+                time: "2025-03-11T09:15:00"
+                authorFullName: Ravi Kumar
+        '401':
+          description: Unauthorized — must be logged in
+
+  /api/community/{postId}:
+    put:
+      tags: [Community]
+      summary: Update own community post
+      operationId: updatePost
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: p3d4e5f6-a7b8-9012-cdef-123456789012
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunityPostRequest'
+            example:
+              title: "Updated: Best electrician in Kondapur?"
+              description: Found a great one — Spark Electricals. Highly recommend!
+              image: https://cdn.example.com/posts/spark.jpg
+      responses:
+        '200':
+          description: Updated post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunityPostDTO'
+        '500':
+          description: Post not found or trying to update another user's post
+
+    delete:
+      tags: [Community]
+      summary: Delete own community post
+      operationId: deletePost
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: p3d4e5f6-a7b8-9012-cdef-123456789012
+      responses:
+        '200':
+          description: Post deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: success
+                message: Post deleted successfully
+        '500':
+          description: Post not found or trying to delete another user's post
+
+  /api/community/user/{uid}:
+    get:
+      tags: [Community]
+      summary: Get all posts by a specific user
+      operationId: getPostsByUser
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+          example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+      responses:
+        '200':
+          description: User's community posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommunityPostDTO'
+              example:
+                - postId: p1b2c3d4-e5f6-7890-abcd-ef1234567890
+                  title: Best PG in Gachibowli?
+                  description: Looking for recommendations
+                  image: null
+                  time: "2025-03-10T14:22:00"
+                  authorFullName: Ravi Kumar
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # CHAT
+  # ════════════════════════════════════════════════════════════════════════════
+
+  /api/chat/start/{vendorId}:
+    get:
+      tags: [Chat]
+      summary: Open or initialize a chat session with a vendor
+      operationId: startChat
+      description: >
+        Returns the existing session if one already exists between the logged-in
+        user and the target vendor, otherwise creates a new session.
+        Use the returned `sessionId` to connect via WebSocket.
+
+        **WebSocket (STOMP over SockJS):**
+
+        - Connect: `ws://localhost:8081/ws-chat`
+        - Subscribe: `/topic/session/{sessionId}`
+        - Send messages to: `/app/chat.sendMessage`
+        - Message payload: `{ "sessionId": "...", "content": "Hello!" }`
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: vendorId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: b2c3d4e5-f6a7-8901-bcde-f12345678901
+      responses:
+        '200':
+          description: Chat session with history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSessionResponse'
+              example:
+                sessionId: cs1b2c3d-e5f6-7890-abcd-ef1234567890
+                participantName: CleanPro Services
+                participantImage: https://cdn.example.com/avatars/cleanpro.jpg
+                messages:
+                  - messageId: m1a2b3c4-d5e6-7890-abcd-ef1234567890
+                    senderId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    senderName: Ravi Kumar
+                    senderImage: null
+                    content: Hi, is your service available this weekend?
+                    createdAt: "2025-03-10T15:30:00"
+        '401':
+          description: Unauthorized — must be logged in
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # AI CHAT
+  # ════════════════════════════════════════════════════════════════════════════
+
+  /api/v1/ai-chat/ask:
+    post:
+      tags: [AI Chat]
+      summary: Natural language service search via Gemini AI
+      operationId: askAI
+      description: >
+        Sends a natural language query to Google Gemini 2.5 Flash.
+        Gemini extracts structured intent (keyword, city, area, maxPrice, minRating)
+        and the backend runs a database search, returning matching service cards.
+        Valid categories: PGs, Food, Electrical service, plumbing service, cleaning service, laundry.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIChatRequest'
+            example:
+              query: I need a good PG in Gachibowli under 8000 rupees
+      responses:
+        '200':
+          description: AI reply with matching service cards
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIChatResponse'
+              example:
+                aiMessage: "Here are the top PGs I found in Gachibowli within your budget:"
+                cards:
+                  - sid: s1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    name: Sunrise PG for Boys
+                    description: Fully furnished rooms with Wi-Fi and meals included
+                    price: 7500.00
+                    categoryName: PGs
+                    city: Hyderabad
+                    area: Gachibowli
+                    primaryImageUrl: https://cdn.example.com/services/pg1.jpg
+        '400':
+          description: Empty or missing query field
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # LOCATIONS
+  # ════════════════════════════════════════════════════════════════════════════
+
+  /api/locations/cities:
+    get:
+      tags: [Locations]
+      summary: Get all unique cities that have services
+      operationId: getCities
+      description: Useful for populating city filter dropdowns on the frontend.
+      responses:
+        '200':
+          description: Alphabetically sorted list of city names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+              example:
+                - Bangalore
+                - Chennai
+                - Hyderabad
+                - Mumbai
+                - Pune
+
+  /api/locations/cities/{city}/areas:
+    get:
+      tags: [Locations]
+      summary: Get all areas within a specific city
+      operationId: getAreasByCity
+      description: Useful for populating area filter dropdowns after a city is selected.
+      parameters:
+        - name: city
+          in: path
+          required: true
+          schema:
+            type: string
+          example: Hyderabad
+      responses:
+        '200':
+          description: Alphabetically sorted list of area names in the city
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+              example:
+                - Ameerpet
+                - Gachibowli
+                - Kondapur
+                - Kukatpally
+                - Madhapur

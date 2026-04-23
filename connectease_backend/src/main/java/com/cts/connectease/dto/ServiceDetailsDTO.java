@@ -16,7 +16,9 @@ public class ServiceDetailsDTO {
     private BigDecimal price;
     private Long totalViews;
     private String vendorName;
-    private double averageRating; // Added
-    private List<ReviewDTO> reviews; // Added
+    private String vendorId;
+    private String categoryName;
+    private double averageRating;
+    private List<ReviewDTO> reviews;
     private List<ImageDTO> images;
 }

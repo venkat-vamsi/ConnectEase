@@ -1,82 +1,76 @@
-<div class="service-nav-bar">
-  <div class="nav-container">
-    <div class="nav-item" 
-         [class.active]="selectedCategoryId === ''" 
-         (click)="filterByCategory('')">
-      <span class="nav-icon">🏠</span>
-      <div class="nav-text">
-        <span class="nav-label">All Services</span>
-      </div>
-    </div>
+<!-- Vendor Mode Banner -->
+@if (vendorMode) {
+  <div class="vendor-mode-banner">
+    <span>Showing services by this vendor</span>
+    <a routerLink="/services" class="vendor-banner-clear">View All Services ×</a>
+  </div>
+}
 
+<!-- Category Nav Bar -->
+<div class="service-nav-bar" [class.hidden]="vendorMode">
+  <div class="nav-container">
     @for (cat of categories; track cat.id) {
-      <div class="nav-item" 
-           [class.active]="selectedCategoryId === cat.id" 
-           (click)="filterByCategory(cat.id)">
+      <div class="nav-item" [class.active]="selectedCategoryId === cat.id" (click)="filterByCategory(cat.id)">
         <span class="nav-icon">{{ cat.icon }}</span>
-        <div class="nav-text">
-          <span class="nav-label">{{ cat.name }}</span>
-          
-        </div>
+        <span class="nav-label">{{ cat.name }}</span>
       </div>
     }
   </div>
 </div>
 
-<div class="search-section-pro">
-  <div class="search-box-pro">
-    <input type="text" placeholder="Search for PGs, Food, or Areas...">
-    <button class="search-btn-simple">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-    </button>
-  </div>
-</div>
-
+<!-- Main Layout -->
 <div class="layout">
+  <!-- Sidebar Filters -->
   <aside class="sidebar">
     <div class="sidebar-header">
       <h3 class="filter-title">Filters</h3>
+      @if (totalElements > 0) {
+        <span class="results-pill">{{ totalElements }} results</span>
+      }
     </div>
-    
+
     <div class="filter-section">
-      <label>Sort Results</label>
+      <label>Sort By</label>
       <select class="pro-select" [(ngModel)]="filters.sortType" (change)="fetchFilteredResults()">
-        <option value="newest">Featured / Newest</option>
-        <option value="price_asc">Price: Low to High</option>
-        <option value="price_desc">Price: High to Low</option>
+        <option value="newest">Newest First</option>
+        <option value="price_asc">Price: Low → High</option>
+        <option value="price_desc">Price: High → Low</option>
       </select>
     </div>
 
     <div class="filter-section">
-      <label>Location</label>
-      <div class="select-stack">
-        <select class="pro-select" [(ngModel)]="filters.city" (change)="fetchFilteredResults()">
-          <option value="">All Cities</option>
-          <option value="Chennai">Chennai</option>
-          <option value="Bangalore">Bangalore</option>
-        </select>
-        <select class="pro-select" [(ngModel)]="filters.area" (change)="fetchFilteredResults()">
-          <option value="">All Areas</option>
-          <option value="Adyar">Adyar</option>
-          <option value="Velachery">Velachery</option>
-        </select>
-      </div>
+      <label>City</label>
+      <select class="pro-select" [(ngModel)]="filters.city" (change)="onCityChange()">
+        <option value="">All Cities</option>
+        @for (city of cities; track city) {
+          <option [value]="city">{{ city }}</option>
+        }
+      </select>
     </div>
 
+    @if (filters.city && areas.length > 0) {
+      <div class="filter-section">
+        <label>Area</label>
+        <select class="pro-select" [(ngModel)]="filters.area" (change)="fetchFilteredResults()">
+          <option value="">All Areas</option>
+          @for (area of areas; track area) {
+            <option [value]="area">{{ area }}</option>
+          }
+        </select>
+      </div>
+    }
+
     <div class="filter-section">
-      <label>Customer Ratings</label>
+      <label>Min Rating</label>
       <div class="rating-list">
         <div class="rating-item" (click)="setRating(4)" [class.active]="filters.minRating === 4">
-          <span class="stars-gold">★★★★☆</span> <span class="rating-text">& Up</span>
+          <span class="stars-gold">★★★★☆</span><span class="rating-text">& Up</span>
         </div>
         <div class="rating-item" (click)="setRating(3)" [class.active]="filters.minRating === 3">
-          <span class="stars-gold">★★★☆☆</span> <span class="rating-text">& Up</span>
+          <span class="stars-gold">★★★☆☆</span><span class="rating-text">& Up</span>
         </div>
         <div class="rating-item" (click)="setRating(2)" [class.active]="filters.minRating === 2">
-          <span class="stars-gold">★★☆☆☆</span> <span class="rating-text">& Up</span>
+          <span class="stars-gold">★★☆☆☆</span><span class="rating-text">& Up</span>
         </div>
         @if (filters.minRating) {
           <div class="clear-filter-link" (click)="setRating(null)">Reset Rating</div>
@@ -85,58 +79,64 @@
     </div>
 
     <div class="filter-section">
-      <label>Price per month</label>
-      <div class="slider-wrapper">
-        <input type="range" class="pro-range-slider" min="0" max="120000" step="1000" 
-               [(ngModel)]="filters.maxPrice" (change)="fetchFilteredResults()">
-      </div>
-
-      <div class="price-inputs-row">
-        <div class="price-box">
-          <span class="box-label">Min</span>
-          <select [(ngModel)]="filters.minPrice">
-            <option [ngValue]="null">₹0</option>
-            <option [ngValue]="5000">₹5k</option>
-            <option [ngValue]="10000">₹10k</option>
-          </select>
-        </div>
-        <span class="price-separator">-</span>
-        <div class="price-box">
-          <span class="box-label">Max</span>
-          <select [(ngModel)]="filters.maxPrice" (change)="fetchFilteredResults()">
-            <option [ngValue]="null">Any</option>
-            <option [ngValue]="20000">₹20k</option>
-            <option [ngValue]="50000">₹50k</option>
-          </select>
-        </div>
-        <button class="pro-go-btn" (click)="fetchFilteredResults()">Go</button>
+      <label>Max Price</label>
+      <input type="range" class="pro-range-slider" min="0" max="50000" step="500"
+             [(ngModel)]="filters.maxPrice" (change)="fetchFilteredResults()" />
+      <div class="price-display">
+        ₹0 — {{ filters.maxPrice ? '₹' + (filters.maxPrice | number) : 'Any' }}
       </div>
     </div>
+
+    <button class="btn-reset-all" (click)="filters = {categoryId: selectedCategoryId, city: '', area: '', minPrice: null, maxPrice: null, minRating: null, sortType: 'newest', page: 0, size: 12}; fetchFilteredResults()">
+      Reset All Filters
+    </button>
   </aside>
 
-  <main class="grid">
-    @for (srv of services; track srv.sid) {
-      <div class="card" [routerLink]="['/services', srv.sid]">
-        <div class="card-img">
-          <img [src]="srv.primaryImageUrl || 'assets/images/placeholder.jpg'" [alt]="srv.name" class="service-thumb">
-          <div class="badge-container">
-            @if (srv.verified) { <span class="badge-verified">✓ Verified</span> }
-            <span class="badge-trust">🛡️ {{ srv.trustScore }}%</span>
-          </div>
-        </div>
-        
-        <div class="card-body">
-          <div class="title-price">
-            <h3 class="card-title">{{ srv.name }}</h3>
-            <div class="card-price">₹{{ srv.price }}<span class="unit">/mo</span></div>
-          </div>
-          <p class="card-location">📍 {{ srv.area }}, {{ srv.city }}</p>
-          <div class="card-footer">
-            <span class="stars-gold">★★★★☆</span>
-            <span class="reviews-count">({{ srv.reviews }})</span>
-          </div>
-        </div>
+  <!-- Results Grid -->
+  <main class="results-area">
+    @if (loading) {
+      <div class="loading-overlay">
+        <div class="spinner"></div>
+        <span>Finding services…</span>
       </div>
     }
+
+    @if (!loading && services.length === 0) {
+      <div class="empty-results">
+        <div class="empty-icon">🔍</div>
+        <h3>No services found</h3>
+        <p>Try adjusting your filters or search in a different area.</p>
+      </div>
+    }
+
+    <div class="cards-grid">
+      @for (srv of services; track srv.sid) {
+        <div class="card" [routerLink]="['/services', srv.sid]">
+          <div class="card-img">
+            <img [src]="srv.primaryImageUrl || 'assets/placeholder.jpg'" [alt]="srv.name" />
+            <span class="badge-verified">✓ Verified</span>
+          </div>
+          <div class="card-body">
+            <span class="cat-chip">{{ srv.categoryName || 'Service' }}</span>
+            <h3 class="card-title">{{ srv.name }}</h3>
+            <p class="card-location">📍 {{ srv.area || '' }}{{ srv.area && srv.city ? ', ' : '' }}{{ srv.city || '' }}</p>
+            @if (srv.averageRating) {
+              <div class="card-rating">
+                <span class="stars-gold">
+                  @for (s of getStarArray(srv.averageRating); track $index) {
+                    <span [class]="s === 'full' ? 'star-full' : 'star-empty'">★</span>
+                  }
+                </span>
+                <span class="rating-num">{{ srv.averageRating | number:'1.1-1' }}</span>
+              </div>
+            }
+            <div class="card-footer">
+              <div class="card-price">₹{{ srv.price | number }}<span class="unit">{{ getPriceUnit(srv.categoryName) }}</span></div>
+              <button class="view-btn">View →</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
   </main>
 </div>

@@ -1,0 +1,106 @@
+<div class="ch-page">
+
+  <div class="ch-header">
+    <div>
+      <h1>My Chats</h1>
+      <p>All your conversations with service vendors.</p>
+    </div>
+  </div>
+
+  <div class="ch-layout">
+    <!-- Sessions list -->
+    <div class="sessions-panel" [class.hidden-mobile]="activeSession">
+
+      @if (loading) {
+        <div class="panel-loading">
+          <div class="spinner"></div>
+          <span>Loading chats…</span>
+        </div>
+      }
+
+      @if (!loading && sessions.length === 0) {
+        <div class="empty-sessions">
+          <div class="empty-icon">💬</div>
+          <h3>No conversations yet</h3>
+          <p>When you message a vendor from a service page, your chat will appear here.</p>
+          <a routerLink="/services" class="btn-browse">Browse Services</a>
+        </div>
+      }
+
+      @for (session of sessions; track session.sessionId) {
+        <div class="session-item"
+             [class.active]="activeSessionId === session.sessionId"
+             (click)="openSession(session)">
+          <div class="sess-avatar">{{ getInitial(session.participantName) }}</div>
+          <div class="sess-info">
+            <div class="sess-name">{{ session.participantName }}</div>
+            <div class="sess-last">
+              {{ session.lastMessage || 'No messages yet' }}
+            </div>
+          </div>
+          <div class="sess-meta">
+            @if (session.messageCount > 0) {
+            <span class="sess-count">{{ session.messageCount }}</span>
+          }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Active chat window -->
+    @if (activeSession) {
+      <div class="chat-panel">
+        <div class="chat-panel-header">
+          <button class="back-btn" (click)="closeActiveSession()">← Back</button>
+          <div class="cp-avatar">{{ getInitial(activeSession.participantName) }}</div>
+          <div class="cp-info">
+            <strong>{{ activeSession.participantName }}</strong>
+            <span class="online-dot"></span>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-msgs">
+          @if (activeSession.messages.length === 0) {
+            <div class="no-msgs">
+              <p>No messages yet. Say hello! 👋</p>
+            </div>
+          }
+
+          @for (msg of activeSession.messages; track msg.messageId) {
+            <div class="msg-row" [class.mine]="isMine(msg)">
+              @if (!isMine(msg)) {
+                <div class="msg-avatar-sm">{{ getInitial(msg.senderName) }}</div>
+              }
+              <div class="msg-bubble">
+                <p>{{ msg.content }}</p>
+                <span class="msg-time">{{ msg.createdAt | date:'shortTime' }}</span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="chat-input-bar">
+          <input type="text"
+                 [(ngModel)]="newMessage"
+                 (keyup.enter)="sendMessage()"
+                 placeholder="Type a message…"
+                 class="msg-input" />
+          <button class="send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (!activeSession && !loading && sessions.length > 0) {
+      <div class="chat-empty-state">
+        <div class="ces-icon">💬</div>
+        <h3>Select a conversation</h3>
+        <p>Choose a chat from the left to view messages.</p>
+      </div>
+    }
+  </div>
+</div>

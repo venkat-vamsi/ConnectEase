@@ -1,0 +1,139 @@
+<div class="profile-page">
+
+  @if (loading) {
+    <div class="profile-loading">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  @if (!loading && profile) {
+    <div class="profile-wrap">
+
+      <!-- Header -->
+      <div class="profile-header">
+        <div class="avatar-lg">{{ profile.fullName.charAt(0) }}</div>
+        <div class="header-info">
+          <h1>{{ profile.fullName }}</h1>
+          <p>{{ profile.email }}</p>
+          <span class="role-badge" [class.vendor]="profile.role === 'vendor'">
+            {{ profile.role === 'vendor' ? '🏪 Vendor' : '👤 Customer' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Tab Nav -->
+      <div class="profile-tabs">
+        <button [class.active]="activeSection === 'profile'" (click)="activeSection = 'profile'">
+          Edit Profile
+        </button>
+        <button [class.active]="activeSection === 'password'" (click)="activeSection = 'password'">
+          Change Password
+        </button>
+        <button [class.active]="activeSection === 'danger'" (click)="activeSection = 'danger'">
+          Account
+        </button>
+      </div>
+
+      <!-- Edit Profile Section -->
+      @if (activeSection === 'profile') {
+        <div class="profile-card">
+          <h3>Personal Information</h3>
+
+          @if (editSuccess) { <div class="alert-success">✓ {{ editSuccess }}</div> }
+          @if (editError) { <div class="alert-error">{{ editError }}</div> }
+
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" [(ngModel)]="editForm.fullName" placeholder="Your full name" />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" [value]="profile.email" disabled class="disabled-input" />
+            <span class="field-hint">Email cannot be changed</span>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" [(ngModel)]="editForm.phoneNo" placeholder="e.g. 9876543210" />
+          </div>
+          <div class="form-group">
+            <label>Profile Image URL</label>
+            <input type="text" [(ngModel)]="editForm.image" placeholder="https://..." />
+            @if (editForm.image) {
+              <img [src]="editForm.image" class="img-preview" (error)="editForm.image = ''" alt="preview" />
+            }
+          </div>
+
+          <div class="card-footer">
+            <span class="joined-date">Member since {{ profile.createdAt | date:'mediumDate' }}</span>
+            <button class="btn-primary" (click)="saveProfile()" [disabled]="editSubmitting">
+              {{ editSubmitting ? 'Saving…' : 'Save Changes' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Change Password Section -->
+      @if (activeSection === 'password') {
+        <div class="profile-card">
+          <h3>Change Password</h3>
+
+          @if (pwSuccess) { <div class="alert-success">✓ {{ pwSuccess }}</div> }
+          @if (pwError) { <div class="alert-error">{{ pwError }}</div> }
+
+          <div class="form-group">
+            <label>Current Password</label>
+            <input type="password" [(ngModel)]="pwForm.oldPassword" placeholder="••••••••" />
+          </div>
+          <div class="form-group">
+            <label>New Password</label>
+            <input type="password" [(ngModel)]="pwForm.newPassword" placeholder="••••••••" />
+          </div>
+          <div class="form-group">
+            <label>Confirm New Password</label>
+            <input type="password" [(ngModel)]="pwForm.confirmPassword" placeholder="••••••••" />
+          </div>
+
+          <div class="card-footer">
+            <button class="btn-primary" (click)="changePassword()" [disabled]="pwSubmitting">
+              {{ pwSubmitting ? 'Updating…' : 'Update Password' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Danger Zone -->
+      @if (activeSection === 'danger') {
+        <div class="profile-card">
+          <h3>Account Settings</h3>
+
+          @if (profile.role === 'vendor') {
+            <div class="info-banner">
+              <span>🏪</span>
+              <div>
+                <strong>Vendor Account</strong>
+                <p>Go to <a routerLink="/vendor/dashboard">Vendor Studio</a> to manage your service listings.</p>
+              </div>
+            </div>
+          }
+
+          <div class="danger-zone">
+            <h4>Danger Zone</h4>
+            <p>Once you delete your account, all your data will be permanently removed. This cannot be undone.</p>
+
+            @if (!deleteConfirm) {
+              <button class="btn-danger" (click)="deleteConfirm = true">Delete My Account</button>
+            } @else {
+              <div class="delete-confirm-box">
+                <p>Are you absolutely sure? This will delete your account and all associated data permanently.</p>
+                <div class="dc-row">
+                  <button class="btn-danger" (click)="deleteAccount()">Yes, Delete My Account</button>
+                  <button class="btn-cancel" (click)="deleteConfirm = false">Cancel</button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

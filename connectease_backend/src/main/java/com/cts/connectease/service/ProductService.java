@@ -1,9 +1,10 @@
 package com.cts.connectease.service;
 
+import com.cts.connectease.dto.ImageDTO;
+import com.cts.connectease.dto.ListingCardDTO;
 import com.cts.connectease.dto.ReviewDTO;
 import com.cts.connectease.dto.ReviewRequestDTO;
 import com.cts.connectease.dto.ServiceDetailsDTO;
-import com.cts.connectease.dto.ImageDTO;
 import com.cts.connectease.model.Rating;
 import com.cts.connectease.model.ServiceEntity;
 import com.cts.connectease.model.User;
@@ -11,6 +12,10 @@ import com.cts.connectease.repository.ProductRepository;
 import com.cts.connectease.repository.RatingRepository;
 import com.cts.connectease.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +28,20 @@ public class ProductService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private RatingRepository ratingRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Transactional
+    public void incrementViews(String sid) {
+        productRepository.findById(sid).ifPresent(service -> {
+            service.setTotalViews((service.getTotalViews() == null ? 0L : service.getTotalViews()) + 1);
+            productRepository.save(service);
+        });
+    }
 
     @Transactional(readOnly = true)
     public ServiceDetailsDTO getServiceDetails(String sid) {
@@ -44,9 +63,9 @@ public class ProductService {
         if (service.getRatings() != null) {
             reviewDTOs = service.getRatings().stream()
                     .map(r -> ReviewDTO.builder()
+                            .rid(r.getRid())
                             .userName(r.getUser() != null ? r.getUser().getFullName() : "Anonymous")
-                            // If you added profileImage to ReviewDTO, map it here:
-                            // .profileImage(r.getUser() != null ? r.getUser().getImage() : null)
+                            .profileImage(r.getUser() != null ? r.getUser().getImage() : null)
                             .review(r.getReview())
                             .score(r.getScore() != null ? r.getScore() : 0)
                             .build())
@@ -71,17 +90,13 @@ public class ProductService {
                 .price(service.getPrice())
                 .totalViews(service.getTotalViews())
                 .vendorName(service.getVendor() != null ? service.getVendor().getFullName() : "Unknown")
+                .vendorId(service.getVendor() != null ? service.getVendor().getUid() : null)
+                .categoryName(service.getCategory() != null ? service.getCategory().getName() : null)
                 .averageRating(Math.round(avgRating * 10.0) / 10.0)
                 .reviews(reviewDTOs)
                 .images(imageDTOs)
                 .build();
     }
-
-    @Autowired
-    private RatingRepository ratingRepository;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Transactional
     public void addReview(String sid, ReviewRequestDTO request) {
@@ -105,5 +120,41 @@ public class ProductService {
             service.setRatings(new ArrayList<>());
         }
         service.getRatings().add(newRating);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ListingCardDTO> getAllServices(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return productRepository.findAll(pageable).map(this::mapToListingCardDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ListingCardDTO> getServicesByVendor(String vendorId) {
+        return productRepository.findByVendorUid(vendorId)
+                .stream()
+                .map(this::mapToListingCardDTO)
+                .collect(Collectors.toList());
+    }
+
+    private ListingCardDTO mapToListingCardDTO(ServiceEntity entity) {
+        ListingCardDTO dto = new ListingCardDTO();
+        dto.setSid(entity.getSid());
+        dto.setName(entity.getName());
+        dto.setDescription(entity.getDescription());
+        dto.setPrice(entity.getPrice());
+        if (entity.getCategory() != null) dto.setCategoryName(entity.getCategory().getName());
+        if (entity.getLocation() != null) {
+            dto.setCity(entity.getLocation().getCity());
+            dto.setArea(entity.getLocation().getArea());
+        }
+        if (entity.getImages() != null && !entity.getImages().isEmpty()) {
+            String primaryUrl = entity.getImages().stream()
+                    .filter(img -> img.getIsPrimary() != null && img.getIsPrimary())
+                    .map(img -> img.getUrl())
+                    .findFirst()
+                    .orElse(entity.getImages().get(0).getUrl());
+            dto.setPrimaryImageUrl(primaryUrl);
+        }
+        return dto;
     }
 }

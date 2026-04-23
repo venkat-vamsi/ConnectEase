@@ -1,5 +1,6 @@
 package com.cts.connectease.service;
 
+import com.cts.connectease.dto.ListingCardDTO;
 import com.cts.connectease.dto.ReviewDTO;
 import com.cts.connectease.dto.ServiceDetailsDTO;
 import com.cts.connectease.dto.VendorDashboardDTO;
@@ -105,6 +106,88 @@ public class VendorService {
                 .totalViews(totalViews)
                 .averageRating(Math.round(avgRating * 10.0) / 10.0)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ListingCardDTO> getVendorServices(String vendorId) {
+        userRepository.findById(vendorId)
+                .orElseThrow(() -> new RuntimeException("Vendor not found"));
+        return productRepository.findByVendorUid(vendorId)
+                .stream()
+                .map(this::mapToListingCardDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ServiceDetailsDTO updateService(String vendorId, String sid, ServiceEntity updatePayload) {
+        ServiceEntity existing = productRepository.findById(sid)
+                .orElseThrow(() -> new RuntimeException("Service not found"));
+        if (existing.getVendor() == null || !existing.getVendor().getUid().equals(vendorId)) {
+            throw new RuntimeException("Unauthorized: you can only update your own services");
+        }
+        if (updatePayload.getName() != null) existing.setName(updatePayload.getName());
+        if (updatePayload.getDescription() != null) existing.setDescription(updatePayload.getDescription());
+        if (updatePayload.getPrice() != null) existing.setPrice(updatePayload.getPrice());
+        if (updatePayload.getCategory() != null && updatePayload.getCategory().getCid() != null) {
+            Category category = categoryRepository.findById(updatePayload.getCategory().getCid())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            existing.setCategory(category);
+        }
+        if (updatePayload.getFeatures() != null) {
+            List<Feature> processedFeatures = new ArrayList<>();
+            for (Feature featureReq : updatePayload.getFeatures()) {
+                Feature featureToLink = featureRepository.findByNameIgnoreCase(featureReq.getName())
+                        .orElseGet(() -> featureRepository.save(
+                                Feature.builder().name(featureReq.getName()).build()));
+                processedFeatures.add(featureToLink);
+            }
+            existing.setFeatures(processedFeatures);
+        }
+        return mapToServiceDetailsDTO(productRepository.save(existing));
+    }
+
+    @Transactional
+    public void deleteService(String vendorId, String sid) {
+        ServiceEntity existing = productRepository.findById(sid)
+                .orElseThrow(() -> new RuntimeException("Service not found"));
+        if (existing.getVendor() == null || !existing.getVendor().getUid().equals(vendorId)) {
+            throw new RuntimeException("Unauthorized: you can only delete your own services");
+        }
+        productRepository.delete(existing);
+    }
+
+    @Transactional
+    public ServiceDetailsDTO toggleServiceStatus(String vendorId, String sid) {
+        ServiceEntity existing = productRepository.findById(sid)
+                .orElseThrow(() -> new RuntimeException("Service not found"));
+        if (existing.getVendor() == null || !existing.getVendor().getUid().equals(vendorId)) {
+            throw new RuntimeException("Unauthorized: you can only update your own services");
+        }
+        existing.setActive(!Boolean.TRUE.equals(existing.getActive()));
+        return mapToServiceDetailsDTO(productRepository.save(existing));
+    }
+
+    // Helper: maps ServiceEntity to ListingCardDTO (primary image, category, location)
+    private ListingCardDTO mapToListingCardDTO(ServiceEntity entity) {
+        ListingCardDTO dto = new ListingCardDTO();
+        dto.setSid(entity.getSid());
+        dto.setName(entity.getName());
+        dto.setDescription(entity.getDescription());
+        dto.setPrice(entity.getPrice());
+        if (entity.getCategory() != null) dto.setCategoryName(entity.getCategory().getName());
+        if (entity.getLocation() != null) {
+            dto.setCity(entity.getLocation().getCity());
+            dto.setArea(entity.getLocation().getArea());
+        }
+        if (entity.getImages() != null && !entity.getImages().isEmpty()) {
+            String primaryUrl = entity.getImages().stream()
+                    .filter(img -> img.getIsPrimary() != null && img.getIsPrimary())
+                    .map(img -> img.getUrl())
+                    .findFirst()
+                    .orElse(entity.getImages().get(0).getUrl());
+            dto.setPrimaryImageUrl(primaryUrl);
+        }
+        return dto;
     }
 
     // Helper method to map Entity to DTO with Ratings and Reviews
