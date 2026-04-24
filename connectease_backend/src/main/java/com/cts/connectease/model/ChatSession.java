@@ -32,6 +32,12 @@ public class ChatSession {
     @Column(name = "started_at")
     private LocalDateTime startedAt;
 
+    @Column(name = "customer_last_read_at")
+    private LocalDateTime customerLastReadAt;
+
+    @Column(name = "vendor_last_read_at")
+    private LocalDateTime vendorLastReadAt;
+
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatMessage> messages;
 }

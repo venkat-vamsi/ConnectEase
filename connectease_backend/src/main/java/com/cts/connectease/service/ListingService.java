@@ -26,12 +26,16 @@ public class ListingService {
             String categoryId, String city, String area,
             BigDecimal minPrice, BigDecimal maxPrice,Double minRating, Double maxRating, String sortType, int page, int size) {
 
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Sort sort = Sort.by(
+                new Sort.Order(Sort.Direction.DESC, "averageRating").nullsLast(),
+                Sort.Order.asc("name"));
 
         if ("price_asc".equalsIgnoreCase(sortType)) {
             sort = Sort.by(Sort.Direction.ASC, "price");
         } else if ("price_desc".equalsIgnoreCase(sortType)) {
             sort = Sort.by(Sort.Direction.DESC, "price");
+        } else if ("newest".equalsIgnoreCase(sortType)) {
+            sort = Sort.by(Sort.Direction.DESC, "createdAt");
         }
 
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -70,6 +74,7 @@ public class ListingService {
                     .orElse(entity.getImages().get(0).getUrl());
         }
         dto.setPrimaryImageUrl(primaryUrl);
+        dto.setAverageRating(entity.getAverageRating());
         return dto;
     }
 }

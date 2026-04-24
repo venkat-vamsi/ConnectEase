@@ -26,7 +26,7 @@ public class ListingController {
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) Double minRating,
             @RequestParam(required = false) Double maxRating,
-            @RequestParam(defaultValue = "newest") String sortType, // newest, price_asc, price_desc
+            @RequestParam(defaultValue = "rating") String sortType, // rating, newest, price_asc, price_desc
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 

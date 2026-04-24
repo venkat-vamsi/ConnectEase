@@ -44,6 +44,9 @@ public class ServiceEntity {
     @Column(name = "total_views")
     private Long totalViews = 0L;
 
+    @Column(name = "average_rating")
+    private Double averageRating;
+
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean active = true;
 

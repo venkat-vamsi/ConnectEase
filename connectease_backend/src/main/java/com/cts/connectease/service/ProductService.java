@@ -129,6 +129,13 @@ public class ProductService {
             service.setRatings(new ArrayList<>());
         }
         service.getRatings().add(newRating);
+
+        double avg = service.getRatings().stream()
+                .filter(r -> r.getScore() != null)
+                .mapToInt(Rating::getScore)
+                .average().orElse(0.0);
+        service.setAverageRating(Math.round(avg * 10.0) / 10.0);
+        productRepository.save(service);
     }
 
     @Transactional(readOnly = true)
@@ -164,6 +171,7 @@ public class ProductService {
                     .orElse(entity.getImages().get(0).getUrl());
             dto.setPrimaryImageUrl(primaryUrl);
         }
+        dto.setAverageRating(entity.getAverageRating());
         return dto;
     }
 }

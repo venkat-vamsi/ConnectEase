@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,7 +38,16 @@ public class ChatService {
                     return sessionRepo.save(newSession);
                 });
 
-        // 2. Fetch history
+        // 2. Mark session as read for current user
+        boolean isCustomer = session.getCustomer().getUid().equals(currentUserId);
+        if (isCustomer) {
+            session.setCustomerLastReadAt(LocalDateTime.now());
+        } else {
+            session.setVendorLastReadAt(LocalDateTime.now());
+        }
+        sessionRepo.save(session);
+
+        // 3. Fetch history
         List<ChatMessage> history = messageRepo.findBySession_SessionIdOrderByCreatedAtAsc(session.getSessionId());
 
         // 3. Map to DTO
@@ -96,11 +106,23 @@ public class ChatService {
         return sessionRepo.findAllSessionsForUser(userId).stream().map(session -> {
             boolean isCustomer = session.getCustomer().getUid().equals(userId);
             User participant = isCustomer ? session.getVendor() : session.getCustomer();
+            LocalDateTime myLastRead = isCustomer ? session.getCustomerLastReadAt() : session.getVendorLastReadAt();
 
             List<ChatMessage> messages = session.getMessages();
             String lastMsg = "";
+            LocalDateTime lastMsgTime = session.getStartedAt();
             if (messages != null && !messages.isEmpty()) {
-                lastMsg = messages.get(messages.size() - 1).getContent();
+                ChatMessage last = messages.get(messages.size() - 1);
+                lastMsg = last.getContent();
+                lastMsgTime = last.getCreatedAt();
+            }
+
+            long unreadCount = 0;
+            if (messages != null) {
+                unreadCount = messages.stream()
+                        .filter(m -> !m.getSender().getUid().equals(userId))
+                        .filter(m -> myLastRead == null || m.getCreatedAt().isAfter(myLastRead))
+                        .count();
             }
 
             return ChatSessionSummaryDTO.builder()
@@ -109,9 +131,11 @@ public class ChatService {
                     .participantImage(participant.getImage())
                     .participantId(participant.getUid())
                     .lastMessage(lastMsg)
-                    .startedAt(session.getStartedAt() != null ? session.getStartedAt().toString() : "")
-                    .messageCount(messages != null ? messages.size() : 0)
+                    .startedAt(lastMsgTime != null ? lastMsgTime.toString() : "")
+                    .messageCount((int) unreadCount)
                     .build();
-        }).collect(Collectors.toList());
+        })
+        .sorted(Comparator.comparing(ChatSessionSummaryDTO::getStartedAt).reversed())
+        .collect(Collectors.toList());
     }
 }

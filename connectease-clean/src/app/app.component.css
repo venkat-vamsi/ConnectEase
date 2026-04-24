@@ -1,5 +1,5 @@
 main {
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 68px);
   display: flex;
   flex-direction: column;
   background-color: var(--ce-bg);

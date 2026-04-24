@@ -84,7 +84,7 @@ export class ServiceDetailsComponent implements OnInit {
     if (!this.newReview.score || !this.newReview.review.trim()) return;
     this.submittingReview = true;
     this.reviewError = '';
-    this.http.post(`/api/services/${this.serviceId}/reviews`, this.newReview).subscribe({
+    this.http.post(`/api/services/${this.serviceId}/reviews`, this.newReview, { responseType: 'text' }).subscribe({
       next: () => {
         this.reviewSuccess = true;
         this.newReview = { review: '', score: 0 };

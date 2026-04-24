@@ -59,7 +59,7 @@ export class ListingsComponent implements OnInit {
     minPrice: null as number | null,
     maxPrice: null as number | null,
     minRating: null as number | null,
-    sortType: 'newest',
+    sortType: 'rating',
     page: 0,
     size: 12
   };
@@ -147,6 +147,7 @@ export class ListingsComponent implements OnInit {
   }
 
   filterByCategory(id: string) {
+    this.filters.page = 0;
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { categoryId: id || null },
@@ -156,7 +157,38 @@ export class ListingsComponent implements OnInit {
 
   setRating(rating: number | null) {
     this.filters.minRating = rating;
+    this.filters.page = 0;
     this.fetchFilteredResults();
+  }
+
+  applyFilter() {
+    this.filters.page = 0;
+    this.fetchFilteredResults();
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.totalElements / this.filters.size);
+  }
+
+  getPageNumbers(): number[] {
+    const total = this.totalPages;
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i);
+    const cur = this.filters.page;
+    const pages: number[] = [0];
+    const start = Math.max(1, cur - 2);
+    const end = Math.min(total - 2, cur + 2);
+    if (start > 1) pages.push(-1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < total - 2) pages.push(-1);
+    pages.push(total - 1);
+    return pages;
+  }
+
+  goToPage(page: number) {
+    if (page < 0 || page >= this.totalPages || page === this.filters.page) return;
+    this.filters.page = page;
+    this.fetchFilteredResults();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   fetchFilteredResults() {

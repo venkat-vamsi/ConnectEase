@@ -19,7 +19,7 @@ public class CommunityService {
 
     @Transactional(readOnly = true)
     public List<CommunityPostDTO> getAllPosts() {
-        return communityRepository.findAll()
+        return communityRepository.findAllByOrderByTimeDesc()
                 .stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());

@@ -31,7 +31,8 @@
 
     <div class="filter-section">
       <label>Sort By</label>
-      <select class="pro-select" [(ngModel)]="filters.sortType" (change)="fetchFilteredResults()">
+      <select class="pro-select" [(ngModel)]="filters.sortType" (change)="applyFilter()">
+        <option value="rating">Top Rated</option>
         <option value="newest">Newest First</option>
         <option value="price_asc">Price: Low → High</option>
         <option value="price_desc">Price: High → Low</option>
@@ -51,7 +52,7 @@
     @if (filters.city && areas.length > 0) {
       <div class="filter-section">
         <label>Area</label>
-        <select class="pro-select" [(ngModel)]="filters.area" (change)="fetchFilteredResults()">
+        <select class="pro-select" [(ngModel)]="filters.area" (change)="applyFilter()">
           <option value="">All Areas</option>
           @for (area of areas; track area) {
             <option [value]="area">{{ area }}</option>
@@ -81,13 +82,13 @@
     <div class="filter-section">
       <label>Max Price</label>
       <input type="range" class="pro-range-slider" min="0" max="50000" step="500"
-             [(ngModel)]="filters.maxPrice" (change)="fetchFilteredResults()" />
+             [(ngModel)]="filters.maxPrice" (change)="applyFilter()" />
       <div class="price-display">
         ₹0 — {{ filters.maxPrice ? '₹' + (filters.maxPrice | number) : 'Any' }}
       </div>
     </div>
 
-    <button class="btn-reset-all" (click)="filters = {categoryId: selectedCategoryId, city: '', area: '', minPrice: null, maxPrice: null, minRating: null, sortType: 'newest', page: 0, size: 12}; fetchFilteredResults()">
+    <button class="btn-reset-all" (click)="filters = {categoryId: selectedCategoryId, city: '', area: '', minPrice: null, maxPrice: null, minRating: null, sortType: 'rating', page: 0, size: 12}; fetchFilteredResults()">
       Reset All Filters
     </button>
   </aside>
@@ -138,5 +139,20 @@
         </div>
       }
     </div>
+
+    <!-- Pagination -->
+    @if (!vendorMode && totalPages > 1) {
+      <div class="pagination">
+        <button class="pg-btn" (click)="goToPage(filters.page - 1)" [disabled]="filters.page === 0">‹</button>
+        @for (p of getPageNumbers(); track $index) {
+          @if (p === -1) {
+            <span class="pg-ellipsis">…</span>
+          } @else {
+            <button class="pg-btn" [class.pg-active]="filters.page === p" (click)="goToPage(p)">{{ p + 1 }}</button>
+          }
+        }
+        <button class="pg-btn" (click)="goToPage(filters.page + 1)" [disabled]="filters.page >= totalPages - 1">›</button>
+      </div>
+    }
   </main>
 </div>

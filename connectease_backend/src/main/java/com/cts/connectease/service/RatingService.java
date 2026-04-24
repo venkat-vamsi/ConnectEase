@@ -2,6 +2,7 @@ package com.cts.connectease.service;
 
 import com.cts.connectease.dto.ReviewDTO;
 import com.cts.connectease.model.Rating;
+import com.cts.connectease.model.ServiceEntity;
 import com.cts.connectease.repository.ProductRepository;
 import com.cts.connectease.repository.RatingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class RatingService {
@@ -42,6 +45,17 @@ public class RatingService {
         if (rating.getUser() == null || !rating.getUser().getUid().equals(currentUserId)) {
             throw new RuntimeException("Unauthorized: you can only delete your own reviews");
         }
+        ServiceEntity service = rating.getService();
         ratingRepository.deleteById(rid);
+
+        if (service != null) {
+            List<Rating> remaining = ratingRepository.findByServiceSid(service.getSid());
+            double avg = remaining.stream()
+                    .filter(r -> r.getScore() != null)
+                    .mapToInt(Rating::getScore)
+                    .average().orElse(0.0);
+            service.setAverageRating(remaining.isEmpty() ? null : Math.round(avg * 10.0) / 10.0);
+            productRepository.save(service);
+        }
     }
 }

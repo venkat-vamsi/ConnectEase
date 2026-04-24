@@ -13,4 +13,5 @@ public class ListingCardDTO {
     private String city;
     private String area;
     private String primaryImageUrl;
+    private Double averageRating;
 }
