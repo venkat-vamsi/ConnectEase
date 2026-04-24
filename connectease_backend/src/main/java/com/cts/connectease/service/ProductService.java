@@ -5,6 +5,7 @@ import com.cts.connectease.dto.ListingCardDTO;
 import com.cts.connectease.dto.ReviewDTO;
 import com.cts.connectease.dto.ReviewRequestDTO;
 import com.cts.connectease.dto.ServiceDetailsDTO;
+import com.cts.connectease.model.Feature;
 import com.cts.connectease.model.Rating;
 import com.cts.connectease.model.ServiceEntity;
 import com.cts.connectease.model.User;
@@ -83,6 +84,13 @@ public class ProductService {
                     .collect(Collectors.toList());
         }
 
+        List<String> featureNames = new ArrayList<>();
+        if (service.getFeatures() != null) {
+            featureNames = service.getFeatures().stream()
+                    .map(Feature::getName)
+                    .collect(Collectors.toList());
+        }
+
         return ServiceDetailsDTO.builder()
                 .sid(service.getSid())
                 .name(service.getName())
@@ -95,6 +103,7 @@ public class ProductService {
                 .averageRating(Math.round(avgRating * 10.0) / 10.0)
                 .reviews(reviewDTOs)
                 .images(imageDTOs)
+                .features(featureNames)
                 .build();
     }
 

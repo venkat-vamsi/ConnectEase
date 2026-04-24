@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { AiChatService, ListingCardDTO } from '../../core/services/ai-chat.service';
+import { AiChatService, ChatTurn, ListingCardDTO } from '../../core/services/ai-chat.service';
 
 interface ChatMessage {
   sender: 'ai' | 'user';
@@ -51,8 +51,15 @@ export class AiChatComponent implements OnInit {
     // 2. Clear old cards while loading
     this.currentCards = [];
 
-    // 3. Call Spring Boot
-    this.aiService.askAssistant(query).subscribe({
+    // 3. Build history: skip initial greeting, exclude current user message just pushed
+    const prior = this.messages.slice(1, -1); // skip AI greeting + skip current user msg
+    const history: ChatTurn[] = prior.slice(-6).map(m => ({
+      role: (m.sender === 'user' ? 'user' : 'model') as 'user' | 'model',
+      text: m.text
+    }));
+
+    // 4. Call Spring Boot with history for context
+    this.aiService.askAssistant(query, history).subscribe({
       next: (response) => {
         this.messages.push({ sender: 'ai', text: response.aiMessage });
         this.currentCards = response.cards;
