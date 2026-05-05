@@ -43,9 +43,8 @@ export class ListingsComponent implements OnInit {
   areas: string[] = [];
 
   private readonly iconMap: Record<string, string> = {
-    pg: '🏠', hostel: '🏠', food: '🍽️', restaurant: '🍽️', electrician: '⚡',
-    electric: '⚡', plumber: '🔧', plumbing: '🔧', clean: '🧹', laundry: '👔',
-    transport: '🚗', beauty: '💆', salon: '✂️', tutor: '📚', repair: '🔩', default: '🔵'
+    pg: '🏠', food: '🍽️', electrician: '⚡',
+    electric: '⚡', plumbing: '🔧', clean: '🧹', laundry: '👔'
   };
 
   categories: { id: string; name: string; icon: string }[] = [

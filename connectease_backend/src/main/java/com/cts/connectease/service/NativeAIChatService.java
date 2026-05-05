@@ -47,7 +47,7 @@ public class NativeAIChatService {
             LOCATION RULES — THIS IS CRITICAL:
             - Our platform ONLY covers Chennai, India.
             - The following are AREAS (localities/neighbourhoods) within Chennai — NEVER treat them as a city:
-              Velachery, Anna Nagar, T.Nagar, Adyar, Tambaram, Mylapore, Nungambakkam, Perambur,
+              Velachery, Seruseri, Anna Nagar, T.Nagar, Adyar, Tambaram, Mylapore, Nungambakkam, Perambur,
               Adambakkam, Porur, Vadapalani, Ashok Nagar, KK Nagar, Chromepet, Pallavaram, Guindy,
               Egmore, Royapettah, Triplicane, Kodambakkam, Mogappair, Avadi, Ambattur, Sholinganallur,
               OMR, ECR, Thoraipakkam, Perungudi, Besant Nagar, Kilpauk, Poonamallee, Thiruvanmiyur.
