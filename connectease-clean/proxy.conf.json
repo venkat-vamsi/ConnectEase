@@ -1,12 +1,12 @@
 {
   "/api": {
-    "target": "http://localhost:8081",
+    "target": "https://connectease-production.up.railway.app/",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
   },
   "/ws-chat": {
-    "target": "http://localhost:8081",
+    "target": "https://connectease-production.up.railway.app/",
     "secure": false,
     "ws": true
   }
