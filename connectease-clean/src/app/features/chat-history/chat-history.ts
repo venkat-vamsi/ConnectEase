@@ -6,6 +6,7 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ChatService } from '../../core/services/chat';
 import { AuthService } from '../../core/services/auth';
 import { Subscription } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 interface SessionSummary {
   sessionId: string;
@@ -75,7 +76,7 @@ export class ChatHistoryComponent implements OnInit, OnDestroy {
 
   loadSessions() {
     this.loading = true;
-    this.http.get<SessionSummary[]>('/api/chat/sessions').subscribe({
+    this.http.get<SessionSummary[]>(`${environment.apiUrl}/chat/sessions`).subscribe({
       next: (res) => {
         this.sessions = res;
         this.loading = false;
@@ -97,7 +98,7 @@ export class ChatHistoryComponent implements OnInit, OnDestroy {
   }
 
   private openChatSession(participantId: string) {
-    this.http.get<any>(`/api/chat/start/${participantId}`).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/chat/start/${participantId}`).subscribe({
       next: (res) => {
         const myUid = res.currentUserId || this.authService.getUid();
         // Sync UID to localStorage if it was missing
@@ -125,7 +126,7 @@ export class ChatHistoryComponent implements OnInit, OnDestroy {
     this.newMessage = '';
     // Send via HTTP POST — cookie auth is reliable; backend broadcasts via WebSocket to both parties
     this.http.post<any>(
-      `/api/chat/${this.activeSession.sessionId}/messages`,
+      `${environment.apiUrl}/chat/${this.activeSession.sessionId}/messages`,
       { content }
     ).subscribe({ error: () => {} });
     const s = this.sessions.find(s => s.sessionId === this.activeSession?.sessionId);

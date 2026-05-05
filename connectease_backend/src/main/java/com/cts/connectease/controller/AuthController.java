@@ -3,10 +3,11 @@ package com.cts.connectease.controller;
 import com.cts.connectease.model.User;
 import com.cts.connectease.service.AuthService;
 import com.cts.connectease.util.JwtUtil;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,13 +46,15 @@ public class AuthController {
 			User user = userOpt.get();
 			String token = jwtUtil.generateToken(user);
 
-			// Store JWT in a secure HttpOnly cookie
-			Cookie cookie = new Cookie("jwt", token);
-			cookie.setHttpOnly(true);
-			cookie.setSecure(false); // Set to true ONLY if using HTTPS in production
-			cookie.setPath("/");
-			cookie.setMaxAge(86400); // 1 day
-			response.addCookie(cookie);
+			// Store JWT in a secure HttpOnly cookie (SameSite=None required for cross-origin Vercel→Railway)
+			ResponseCookie cookie = ResponseCookie.from("jwt", token)
+					.httpOnly(true)
+					.secure(true)
+					.path("/")
+					.maxAge(86400)
+					.sameSite("None")
+					.build();
+			response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
 			return ResponseEntity.ok(Map.of(
 					"status", "success",
@@ -68,11 +71,14 @@ public class AuthController {
     
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout(HttpServletResponse response) {
-		Cookie cookie = new Cookie("jwt", null);
-		cookie.setHttpOnly(true);
-		cookie.setPath("/");
-		cookie.setMaxAge(0); // Instantly expires the cookie
-		response.addCookie(cookie);
+		ResponseCookie cookie = ResponseCookie.from("jwt", "")
+				.httpOnly(true)
+				.secure(true)
+				.path("/")
+				.maxAge(0)
+				.sameSite("None")
+				.build();
+		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 		return ResponseEntity.ok(Map.of("status", "success", "message", "Logged out successfully"));
 	}
 }

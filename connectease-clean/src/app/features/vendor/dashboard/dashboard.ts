@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth';
+import { environment } from '../../../../environments/environment';
 
 interface DashboardStats {
   vendorName: string;
@@ -89,14 +90,14 @@ export class DashboardComponent implements OnInit {
 
   loadDashboard() {
     this.statsLoading = true;
-    this.http.get<DashboardStats>('/api/vendor/dashboard').subscribe({
+    this.http.get<DashboardStats>(`${environment.apiUrl}/vendor/dashboard`).subscribe({
       next: (res) => { this.stats = res; this.statsLoading = false; },
       error: () => { this.statsLoading = false; }
     });
   }
 
   loadCategories() {
-    this.http.get<Category[]>('/api/categories').subscribe({
+    this.http.get<Category[]>(`${environment.apiUrl}/categories`).subscribe({
       next: (res) => { this.categories = res; },
       error: () => {
         this.categories = [
@@ -116,7 +117,7 @@ export class DashboardComponent implements OnInit {
 
   loadListings() {
     this.listingsLoading = true;
-    this.http.get<Listing[]>('/api/vendor/services').subscribe({
+    this.http.get<Listing[]>(`${environment.apiUrl}/vendor/services`).subscribe({
       next: (res) => { this.listings = res; this.listingsLoading = false; },
       error: () => { this.listingsLoading = false; }
     });
@@ -206,7 +207,7 @@ export class DashboardComponent implements OnInit {
     const payload = this.buildPayload();
 
     if (this.activeTab === 'edit' && this.editingSid) {
-      this.http.put(`/api/vendor/service/${this.editingSid}`, payload).subscribe({
+      this.http.put(`${environment.apiUrl}/vendor/service/${this.editingSid}`, payload).subscribe({
         next: () => {
           this.formSuccess = 'Service updated successfully!';
           this.formSubmitting = false;
@@ -215,7 +216,7 @@ export class DashboardComponent implements OnInit {
         error: () => { this.formError = 'Update failed. Please try again.'; this.formSubmitting = false; }
       });
     } else {
-      this.http.post('/api/vendor/service/add', payload).subscribe({
+      this.http.post(`${environment.apiUrl}/vendor/service/add`, payload).subscribe({
         next: () => {
           this.formSuccess = 'Service created successfully!';
           this.formSubmitting = false;
@@ -227,7 +228,7 @@ export class DashboardComponent implements OnInit {
   }
 
   toggleStatus(listing: Listing) {
-    this.http.patch(`/api/vendor/service/${listing.sid}/status`, {}).subscribe({
+    this.http.patch(`${environment.apiUrl}/vendor/service/${listing.sid}/status`, {}).subscribe({
       next: (res: any) => {
         listing.active = !listing.active;
       },
@@ -239,7 +240,7 @@ export class DashboardComponent implements OnInit {
   cancelDelete() { this.deleteConfirmSid = ''; }
 
   deleteService(sid: string) {
-    this.http.delete(`/api/vendor/service/${sid}`).subscribe({
+    this.http.delete(`${environment.apiUrl}/vendor/service/${sid}`).subscribe({
       next: () => {
         this.listings = this.listings.filter(l => l.sid !== sid);
         this.deleteConfirmSid = '';

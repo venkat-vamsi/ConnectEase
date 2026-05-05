@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth';
+import { environment } from '../../../../environments/environment';
 
 interface ServiceImage { url: string; isPrimary: boolean; }
 interface Review { rid?: string; userName: string; profileImage: string | null; review: string; score: number; }
@@ -54,11 +55,11 @@ export class ServiceDetailsComponent implements OnInit {
 
   loadService() {
     this.loading = true;
-    this.http.get<ServiceDetail>(`/api/services/${this.serviceId}`).subscribe({
+    this.http.get<ServiceDetail>(`${environment.apiUrl}/services/${this.serviceId}`).subscribe({
       next: (res) => {
         this.service = res;
         this.loading = false;
-        this.http.post(`/api/services/${this.serviceId}/view`, {}).subscribe();
+        this.http.post(`${environment.apiUrl}/services/${this.serviceId}/view`, {}).subscribe();
       },
       error: () => { this.error = 'Service not found.'; this.loading = false; }
     });
@@ -84,7 +85,7 @@ export class ServiceDetailsComponent implements OnInit {
     if (!this.newReview.score || !this.newReview.review.trim()) return;
     this.submittingReview = true;
     this.reviewError = '';
-    this.http.post(`/api/services/${this.serviceId}/reviews`, this.newReview, { responseType: 'text' }).subscribe({
+    this.http.post(`${environment.apiUrl}/services/${this.serviceId}/reviews`, this.newReview, { responseType: 'text' }).subscribe({
       next: () => {
         this.reviewSuccess = true;
         this.newReview = { review: '', score: 0 };
@@ -101,7 +102,7 @@ export class ServiceDetailsComponent implements OnInit {
   }
 
   deleteReview(rid: string) {
-    this.http.delete(`/api/ratings/${rid}`).subscribe({
+    this.http.delete(`${environment.apiUrl}/ratings/${rid}`).subscribe({
       next: () => { this.loadService(); },
       error: () => {}
     });

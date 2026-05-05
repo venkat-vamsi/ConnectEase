@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap, BehaviorSubject } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -15,11 +16,11 @@ export class AuthService {
   getFullName(): string { return localStorage.getItem('fullName') || ''; }
 
   signup(data: any) {
-    return this.http.post('/api/auth/signup', data);
+    return this.http.post(`${environment.apiUrl}/auth/signup`, data);
   }
 
   login(credentials: any) {
-    return this.http.post('/api/auth/signin', credentials).pipe(
+    return this.http.post(`${environment.apiUrl}/auth/signin`, credentials).pipe(
       tap((res: any) => {
         if (res.status === 'success') {
           localStorage.setItem('role', res.role);
@@ -32,7 +33,7 @@ export class AuthService {
   }
 
   logout() {
-    return this.http.post('/api/auth/logout', {}).pipe(
+    return this.http.post(`${environment.apiUrl}/auth/logout`, {}).pipe(
       tap(() => {
         localStorage.removeItem('role');
         localStorage.removeItem('uid');

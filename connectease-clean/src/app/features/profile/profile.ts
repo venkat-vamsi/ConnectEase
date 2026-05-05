@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth';
+import { environment } from '../../../environments/environment';
 
 interface UserProfile {
   uid: string;
@@ -51,7 +52,7 @@ export class ProfileComponent implements OnInit {
 
   loadProfile(uid: string) {
     this.loading = true;
-    this.http.get<UserProfile>(`/api/users/${uid}`).subscribe({
+    this.http.get<UserProfile>(`${environment.apiUrl}/users/${uid}`).subscribe({
       next: (res) => {
         this.profile = res;
         this.editForm = { fullName: res.fullName, phoneNo: res.phoneNo || '', image: res.image || '' };
@@ -72,7 +73,7 @@ export class ProfileComponent implements OnInit {
     if (this.editForm.phoneNo !== this.profile.phoneNo) payload.phoneNo = this.editForm.phoneNo;
     if (this.editForm.image !== this.profile.image) payload.image = this.editForm.image;
 
-    this.http.put<UserProfile>(`/api/users/${uid}`, payload).subscribe({
+    this.http.put<UserProfile>(`${environment.apiUrl}/users/${uid}`, payload).subscribe({
       next: (res) => {
         this.profile = res;
         localStorage.setItem('fullName', res.fullName);
@@ -100,7 +101,7 @@ export class ProfileComponent implements OnInit {
     const uid = this.authService.getUid();
     this.pwSubmitting = true;
     this.pwError = '';
-    this.http.put(`/api/users/${uid}/password`, {
+    this.http.put(`${environment.apiUrl}/users/${uid}/password`, {
       oldPassword: this.pwForm.oldPassword,
       newPassword: this.pwForm.newPassword
     }).subscribe({
@@ -119,7 +120,7 @@ export class ProfileComponent implements OnInit {
 
   deleteAccount() {
     const uid = this.authService.getUid();
-    this.http.delete(`/api/users/${uid}`).subscribe({
+    this.http.delete(`${environment.apiUrl}/users/${uid}`).subscribe({
       next: () => {
         this.authService.logout().subscribe(() => {
           this.router.navigate(['/']);

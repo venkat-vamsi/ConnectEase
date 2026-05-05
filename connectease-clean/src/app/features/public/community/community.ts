@@ -4,6 +4,7 @@ import { DatePipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth';
+import { environment } from '../../../../environments/environment';
 
 interface Post {
   postId?: string;
@@ -52,7 +53,7 @@ export class CommunityComponent implements OnInit {
   }
 
   loadCategories() {
-    this.http.get<ApiCategory[]>('/api/categories').subscribe({
+    this.http.get<ApiCategory[]>(`${environment.apiUrl}/categories`).subscribe({
       next: (res) => {
         this.communityCategories = [
           { id: '', label: '✨ All Posts' },
@@ -79,7 +80,7 @@ export class CommunityComponent implements OnInit {
 
   fetchPosts() {
     this.loading = true;
-    this.http.get<Post[]>('/api/community').subscribe({
+    this.http.get<Post[]>(`${environment.apiUrl}/community`).subscribe({
       next: (res) => {
         this.allPosts = res;
         this.applyFilter();
@@ -148,7 +149,7 @@ export class CommunityComponent implements OnInit {
     };
 
     if (this.editingPost) {
-      this.http.put<Post>(`/api/community/${this.editingPost.postId}`, payload).subscribe({
+      this.http.put<Post>(`${environment.apiUrl}/community/${this.editingPost.postId}`, payload).subscribe({
         next: (res) => {
           const idx = this.allPosts.findIndex(p => p.postId === this.editingPost?.postId);
           if (idx !== -1) this.allPosts[idx] = res;
@@ -161,7 +162,7 @@ export class CommunityComponent implements OnInit {
         error: () => { this.submitting = false; }
       });
     } else {
-      this.http.post<Post>('/api/community', payload).subscribe({
+      this.http.post<Post>(`${environment.apiUrl}/community`, payload).subscribe({
         next: (res) => {
           this.allPosts.unshift(res);
           this.applyFilter();
@@ -179,7 +180,7 @@ export class CommunityComponent implements OnInit {
   cancelDelete() { this.deleteConfirmId = ''; }
 
   deletePost(postId: string) {
-    this.http.delete(`/api/community/${postId}`).subscribe({
+    this.http.delete(`${environment.apiUrl}/community/${postId}`).subscribe({
       next: () => {
         this.allPosts = this.allPosts.filter(p => p.postId !== postId);
         this.applyFilter();

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Client, Message, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { Subject } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
@@ -18,7 +19,7 @@ export class ChatService {
       this.client.deactivate();
     }
     this.client = new Client({
-      webSocketFactory: () => new SockJS(window.location.origin + '/ws-chat'),
+      webSocketFactory: () => new SockJS(environment.wsUrl),
       reconnectDelay: 5000,
       onConnect: () => {
         this.isChatOpen = true;

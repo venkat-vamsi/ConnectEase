@@ -3,7 +3,11 @@
     "allow": [
       "Bash(npm run *)",
       "Bash(xargs grep *)",
-      "Bash(xargs cat *)"
+      "Bash(xargs cat *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\2479705\\\\Documents\\\\ConnectEase\\\\connectease-clean\\\\src\" -Recurse | Select-Object FullName | Where-Object { $_.FullName -match \"\\\\.ts$\" } | Select-Object -First 20)",
+      "PowerShell(cmd /c \"dir \"\"C:\\\\Users\\\\2479705\\\\Documents\\\\ConnectEase\\\\connectease-clean\\\\src\\\\app\"\" /s /b\" 2>&1 | Select-Object -First 30)",
+      "PowerShell(cmd /c \"dir \"\"C:\\\\Users\\\\2479705\\\\Documents\\\\ConnectEase\"\" /b\")",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\2479705\\\\Documents\\\\ConnectEase\\\\connectease_backend\\\\src\" -Recurse | Where-Object { $_.Name -match \"Cors|WebConfig|Security|Config\" } | Select-Object FullName)"
     ]
   }
 }

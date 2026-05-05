@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../../../environments/environment';
 
 interface Listing {
   sid: string;
@@ -87,7 +88,7 @@ export class ListingsComponent implements OnInit {
 
   fetchVendorServices(vendorId: string) {
     this.loading = true;
-    this.http.get<Listing[]>(`/api/services/vendor/${vendorId}`).subscribe({
+    this.http.get<Listing[]>(`${environment.apiUrl}/services/vendor/${vendorId}`).subscribe({
       next: (res) => {
         this.services = res;
         this.totalElements = res.length;
@@ -107,7 +108,7 @@ export class ListingsComponent implements OnInit {
   }
 
   loadCategories() {
-    this.http.get<Category[]>('/api/categories').subscribe({
+    this.http.get<Category[]>(`${environment.apiUrl}/categories`).subscribe({
       next: (res) => {
         this.categories = [
           { id: '', name: 'All Services', icon: '🏘️' },
@@ -127,7 +128,7 @@ export class ListingsComponent implements OnInit {
   }
 
   loadCities() {
-    this.http.get<string[]>('/api/locations/cities').subscribe({
+    this.http.get<string[]>(`${environment.apiUrl}/locations/cities`).subscribe({
       next: (res) => { this.cities = res; },
       error: () => { this.cities = ['Hyderabad', 'Chennai', 'Bangalore', 'Mumbai', 'Pune']; }
     });
@@ -137,7 +138,7 @@ export class ListingsComponent implements OnInit {
     this.filters.area = '';
     this.areas = [];
     if (this.filters.city) {
-      this.http.get<string[]>(`/api/locations/cities/${this.filters.city}/areas`).subscribe({
+      this.http.get<string[]>(`${environment.apiUrl}/locations/cities/${this.filters.city}/areas`).subscribe({
         next: (res) => { this.areas = res; },
         error: () => { this.areas = []; }
       });
@@ -197,7 +198,7 @@ export class ListingsComponent implements OnInit {
       if (value !== null && value !== '') params = params.set(key, value.toString());
     });
 
-    this.http.get<any>('/api/v1/listings/filter', { params }).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/v1/listings/filter`, { params }).subscribe({
       next: (res) => {
         this.services = res.content || [];
         this.totalElements = res.totalElements || 0;
