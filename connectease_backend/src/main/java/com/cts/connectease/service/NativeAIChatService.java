@@ -38,37 +38,40 @@ public class NativeAIChatService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // Pass 1: Extract Intents and Features ONLY (Strict JSON)
+    // --- PASS 1: INTENT & FEATURE EXTRACTION ---
     private static final String INTENT_SYSTEM_PROMPT = """
-            You are the ConnectEase local guide AI. Your ONLY job right now is to extract search parameters.
+            You are the ConnectEase local guide AI. Your ONLY job is to extract search parameters.
             
             LOCATION RULES:
             - Platform ONLY covers Chennai.
             - Areas: Velachery, Seruseri, Anna Nagar, T.Nagar, Adyar, Tambaram, Mylapore, Nungambakkam, Perambur, Adambakkam, Porur, Vadapalani, Ashok Nagar, KK Nagar, Chromepet, Pallavaram, Guindy, Egmore, Royapettah, Triplicane, Kodambakkam, Mogappair, Avadi, Ambattur, Sholinganallur, OMR, ECR, Thoraipakkam, Perungudi, Besant Nagar, Kilpauk, Poonamallee, Thiruvanmiyur.
-            - If user mentions an area, city="Chennai", area=locality.
+            - If user mentions a locality, set city="Chennai" and area=locality name.
+            
+            CATEGORY MAPPING:
+            - "Veg", "Vegetarian", "Hotel", "Restaurant", "Breakfast" -> keyword="Food"
+            - "Room", "Stay", "Hostel" -> keyword="PGs"
             
             RESPONSE FORMAT — return STRICT JSON only:
             {
               "keyword": "Category name or null",
               "city": "Chennai or null",
-              "area": "specific Chennai locality or null",
+              "area": "specific locality or null",
               "maxPrice": number or null,
               "minRating": number or null,
-              "features": ["array", "of", "requested", "features", "like", "ac", "wifi"] // Empty array if none mentioned
+              "features": ["array", "of", "features", "like", "ac", "wifi", "veg"]
             }
             """;
 
-    // Pass 2: Generate the friendly summary response
+    // --- PASS 2: REVIEW SUMMARIZATION & CONVERSATION ---
     private static final String SUMMARY_SYSTEM_PROMPT = """
-            You are the ConnectEase local guide. A user asked a query, and we have fetched the best matching services along with their customer reviews.
+            You are the ConnectEase local guide. A user asked a query, and we have fetched the best matching services and their reviews.
             
-            Your tasks:
-            1. Write a warm, conversational reply addressing their query.
-            2. For EACH fetched service provided in the context, you MUST summarize the reviews.
-            3. Highlight major POSITIVES and explicitly alert the user about any NEGATIVES (e.g., "KR PG - Most users love how near it is, but be aware the food is entirely Tamilian.").
+            TASKS:
+            1. Write a warm, conversational reply. 
+            2. If we didn't find the exact specific thing (like "veg") but found general top services in that area, honestly mention: "I couldn't find exact matches for [X], but here are the highest-rated options nearby."
+            3. For EACH service, summarize the reviews. Highlight major POSITIVES and explicitly alert the user to NEGATIVES (e.g., "KR PG - Great location, but users mentioned the food is strictly Tamilian.").
             
-            Keep the summaries concise and easy to scan so the user doesn't get a headache reading.
-            Do NOT return JSON. Return plain text/markdown conversational response.
+            Format nicely with bold titles. Keep it concise. No raw JSON in output.
             """;
 
     @Transactional(readOnly = true)
@@ -77,12 +80,9 @@ public class NativeAIChatService {
             List<ChatTurnDTO> safeHistory = (history != null) ? history : new ArrayList<>();
             ArrayNode conversationHistory = buildConversationHistory(safeHistory);
 
-            // -------------------------------------------------------------
-            // PASS 1: Extract Intent & Features via JSON
-            // -------------------------------------------------------------
+            // 1. EXTRACT INTENT
             ArrayNode pass1Contents = conversationHistory.deepCopy();
             pass1Contents.add(createUserTurn(userQuery));
-
             String jsonOutput = callGemini(INTENT_SYSTEM_PROMPT, pass1Contents, true);
             JsonNode aiDecision = objectMapper.readTree(jsonOutput);
 
@@ -92,84 +92,80 @@ public class NativeAIChatService {
             BigDecimal maxPrice = aiDecision.path("maxPrice").isNull() ? null : new BigDecimal(aiDecision.path("maxPrice").asText());
             Double minRating    = aiDecision.path("minRating").isNull() ? null : aiDecision.path("minRating").asDouble();
 
-            List<String> requestedFeatures = new ArrayList<>();
-            if (aiDecision.has("features") && aiDecision.get("features").isArray()) {
-                for (JsonNode f : aiDecision.get("features")) {
-                    requestedFeatures.add(f.asText().toLowerCase());
-                }
+            List<String> features = new ArrayList<>();
+            if (aiDecision.has("features")) {
+                aiDecision.get("features").forEach(f -> features.add(f.asText().toLowerCase()));
             }
 
-            // -------------------------------------------------------------
-            // DATABASE FETCH: Attempt Feature Match first, then Fallback
-            // -------------------------------------------------------------
+            // 2. RESILIENT DATABASE SEARCH (3 STAGES)
             List<ServiceEntity> entities = new ArrayList<>();
 
-            if (!requestedFeatures.isEmpty()) {
-                entities = serviceRepository.advancedSearchByFeaturesForAI(
-                        keyword, city, area, maxPrice, minRating, requestedFeatures, PageRequest.of(0, 5));
+            // Stage A: Match by Features (High Precision)
+            if (!features.isEmpty()) {
+                entities = serviceRepository.advancedSearchByFeaturesForAI(keyword, city, area, maxPrice, minRating, features, PageRequest.of(0, 5));
             }
 
-            // If feature search returned nothing (or no features requested), fallback to standard search
+            // Stage B: Match by Keyword/Category (Standard)
             if (entities.isEmpty()) {
-                entities = serviceRepository.advancedSearchForAI(
-                        keyword, city, area, maxPrice, minRating, PageRequest.of(0, 5));
+                entities = serviceRepository.advancedSearchForAI(keyword, city, area, maxPrice, minRating, PageRequest.of(0, 5));
+            }
+
+            // Stage C: Broad Fallback (If keyword search fails, show top-rated in that area)
+            boolean isFallbackUsed = false;
+            if (entities.isEmpty() && (city != null || area != null)) {
+                isFallbackUsed = true;
+                entities = serviceRepository.advancedSearchForAI(null, city, area, null, null, PageRequest.of(0, 5));
             }
 
             List<ListingCardDTO> cards = entities.stream().map(this::mapToDTO).collect(Collectors.toList());
 
             if (cards.isEmpty()) {
-                return new AIChatResponse("I understand what you need, but I couldn't find exact matches right now. Try broadening your search!", new ArrayList<>());
+                return new AIChatResponse("I'm sorry, I couldn't find any services matching your request in Chennai. Try searching for something broader!", new ArrayList<>());
             }
 
-            // -------------------------------------------------------------
-            // PASS 2: Compile Reviews and Generate Summary Reply
-            // -------------------------------------------------------------
-            StringBuilder reviewContext = new StringBuilder("\n\n--- FETCHED SERVICES & REVIEWS ---\n");
+            // 3. COMPILE REVIEWS FOR SUMMARY
+            StringBuilder reviewContext = new StringBuilder("\n\n--- SERVICE DATA & REVIEWS ---\n");
             for (ServiceEntity entity : entities) {
-                reviewContext.append("Service Name: ").append(entity.getName()).append("\nReviews: ");
-
-                if (entity.getRatings() != null && !entity.getRatings().isEmpty()) {
-                    int count = 0;
-                    for (Rating r : entity.getRatings()) {
-                        String reviewText = r.getReview(); // Using the exact field from your Rating model
-                        if (reviewText != null && !reviewText.trim().isEmpty()) {
-                            reviewContext.append("[").append(reviewText).append("] ");
-                            if (++count >= 15) break; // Limit to 15 reviews per service to save context window and speed
-                        }
-                    }
-                    if (count == 0) reviewContext.append("Only ratings, no written reviews yet.");
+                reviewContext.append("Name: ").append(entity.getName()).append("\nReviews: ");
+                List<Rating> ratings = entity.getRatings();
+                if (ratings != null && !ratings.isEmpty()) {
+                    ratings.stream().limit(10).forEach(r -> {
+                        if (r.getReview() != null) reviewContext.append("[").append(r.getReview()).append("] ");
+                    });
                 } else {
-                    reviewContext.append("No reviews available yet.");
+                    reviewContext.append("No written reviews yet.");
                 }
                 reviewContext.append("\n\n");
             }
 
+            // 4. GENERATE FINAL SUMMARY
+            String finalPrompt = SUMMARY_SYSTEM_PROMPT;
+            if (isFallbackUsed) {
+                finalPrompt += "\nNOTE: No exact matches for '" + keyword + "' were found. These are top-rated alternatives in " + (area != null ? area : city) + ".";
+            }
+
             ArrayNode pass2Contents = conversationHistory.deepCopy();
-            String enrichedQuery = "User Query: " + userQuery + reviewContext.toString();
-            pass2Contents.add(createUserTurn(enrichedQuery));
+            pass2Contents.add(createUserTurn("User Query: " + userQuery + reviewContext.toString()));
 
-            String finalReplyMessage = callGemini(SUMMARY_SYSTEM_PROMPT, pass2Contents, false);
+            String finalReply = callGemini(finalPrompt, pass2Contents, false);
 
-            return new AIChatResponse(finalReplyMessage, cards);
+            return new AIChatResponse(finalReply, cards);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new AIChatResponse("I'm having a little trouble reading the reviews right now. Please try again in a moment!", new ArrayList<>());
+            return new AIChatResponse("I hit a snag while searching. Please try again!", new ArrayList<>());
         }
     }
 
-    // --- Helper Methods ---
-
+    // --- GEMINI API HELPER ---
     private String callGemini(String systemPrompt, ArrayNode contents, boolean forceJson) throws Exception {
         String cleanKey = apiKey.replace("\"", "").replace("'", "").trim();
         String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + cleanKey;
 
         ObjectNode requestNode = objectMapper.createObjectNode();
-
         ObjectNode sysInstr = objectMapper.createObjectNode();
         sysInstr.set("parts", objectMapper.createArrayNode().add(objectMapper.createObjectNode().put("text", systemPrompt)));
         requestNode.set("systemInstruction", sysInstr);
-
         requestNode.set("contents", contents);
 
         if (forceJson) {
@@ -180,53 +176,36 @@ public class NativeAIChatService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("User-Agent", "Mozilla/5.0");
+        headers.set("User-Agent", "ConnectEase-Backend");
 
         HttpEntity<String> httpRequest = new HttpEntity<>(objectMapper.writeValueAsString(requestNode), headers);
-        ResponseEntity<String> response = null;
-
-        int maxRetries = 3;
-        for (int i = 0; i < maxRetries; i++) {
-            try {
-                response = restTemplate.postForEntity(apiUrl, httpRequest, String.class);
-                break;
-            } catch (org.springframework.web.client.HttpClientErrorException.TooManyRequests e) {
-                System.out.println("Rate limit (429) hit. Retrying in 5s... (attempt " + (i + 1) + ")");
-                Thread.sleep(5000);
-                if (i == maxRetries - 1) throw e;
-            }
-        }
+        ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, httpRequest, String.class);
 
         JsonNode rootNode = objectMapper.readTree(response.getBody());
         String text = rootNode.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
 
-        if (forceJson) {
-            return text.replace("```json", "").replace("```", "").trim();
-        }
-        return text;
+        return forceJson ? text.replace("```json", "").replace("```", "").trim() : text;
     }
 
-    private ArrayNode buildConversationHistory(List<ChatTurnDTO> safeHistory) {
-        ArrayNode contentsArray = objectMapper.createArrayNode();
-        int startIdx = 0;
-        while (startIdx < safeHistory.size() && "model".equals(safeHistory.get(startIdx).getRole())) {
-            startIdx++;
-        }
-        for (int i = startIdx; i < safeHistory.size(); i++) {
-            ChatTurnDTO turn = safeHistory.get(i);
+    private ArrayNode buildConversationHistory(List<ChatTurnDTO> history) {
+        ArrayNode nodes = objectMapper.createArrayNode();
+        int start = 0;
+        while (start < history.size() && "model".equals(history.get(start).getRole())) start++;
+        for (int i = start; i < history.size(); i++) {
+            ChatTurnDTO turn = history.get(i);
             ObjectNode turnNode = objectMapper.createObjectNode();
             turnNode.put("role", "user".equals(turn.getRole()) ? "user" : "model");
-            turnNode.set("parts", objectMapper.createArrayNode().add(objectMapper.createObjectNode().put("text", turn.getText() != null ? turn.getText() : "")));
-            contentsArray.add(turnNode);
+            turnNode.set("parts", objectMapper.createArrayNode().add(objectMapper.createObjectNode().put("text", turn.getText())));
+            nodes.add(turnNode);
         }
-        return contentsArray;
+        return nodes;
     }
 
     private ObjectNode createUserTurn(String text) {
-        ObjectNode turn = objectMapper.createObjectNode();
-        turn.put("role", "user");
-        turn.set("parts", objectMapper.createArrayNode().add(objectMapper.createObjectNode().put("text", text)));
-        return turn;
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("role", "user");
+        node.set("parts", objectMapper.createArrayNode().add(objectMapper.createObjectNode().put("text", text)));
+        return node;
     }
 
     private ListingCardDTO mapToDTO(ServiceEntity entity) {
@@ -235,20 +214,13 @@ public class NativeAIChatService {
         dto.setName(entity.getName());
         dto.setDescription(entity.getDescription());
         dto.setPrice(entity.getPrice());
-
         if (entity.getCategory() != null) dto.setCategoryName(entity.getCategory().getName());
         if (entity.getLocation() != null) {
             dto.setCity(entity.getLocation().getCity());
             dto.setArea(entity.getLocation().getArea());
         }
-
         if (entity.getImages() != null && !entity.getImages().isEmpty()) {
-            String primaryUrl = entity.getImages().stream()
-                    .filter(img -> img.getIsPrimary() != null && img.getIsPrimary())
-                    .map(img -> img.getUrl())
-                    .findFirst()
-                    .orElse(entity.getImages().get(0).getUrl());
-            dto.setPrimaryImageUrl(primaryUrl);
+            dto.setPrimaryImageUrl(entity.getImages().get(0).getUrl());
         }
         return dto;
     }
