@@ -9,7 +9,7 @@
 .ch-header {
   padding: 18px 28px 16px;
   border-bottom: 1px solid var(--border-color);
-  background: white;
+  background: var(--ce-surface);
   flex-shrink: 0;
   box-shadow: 0 1px 8px rgba(0,0,0,0.04);
 }
@@ -26,7 +26,7 @@
 /* ── Sessions Panel ──────────────────────────────────── */
 .sessions-panel {
   width: 300px; flex-shrink: 0;
-  background: white;
+  background: var(--ce-surface);
   border-right: 1px solid var(--border-color);
   overflow-y: auto;
 }
@@ -96,11 +96,11 @@
 }
 
 /* ── Chat Panel ──────────────────────────────────────── */
-.chat-panel { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #FAFBFD; }
+.chat-panel { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--ce-bg); }
 
 .chat-panel-header {
   display: flex; align-items: center; gap: 12px;
-  padding: 14px 20px; background: white;
+  padding: 14px 20px; background: var(--ce-surface);
   border-bottom: 1px solid var(--border-color); flex-shrink: 0;
   box-shadow: 0 1px 6px rgba(0,0,0,0.04);
 }
@@ -154,7 +154,7 @@
 .msg-bubble p {
   margin: 0; padding: 10px 14px;
   border-radius: 18px; font-size: 14px; line-height: 1.55;
-  background: white;
+  background: var(--ce-surface);
   border: 1px solid var(--border-color);
   color: var(--text-dark);
   border-bottom-left-radius: 4px;
@@ -176,7 +176,7 @@
 /* ── Input Bar ───────────────────────────────────────── */
 .chat-input-bar {
   display: flex; align-items: center; gap: 10px;
-  padding: 14px 20px; background: white;
+  padding: 14px 20px; background: var(--ce-surface);
   border-top: 1px solid var(--border-color); flex-shrink: 0;
 }
 .msg-input {
@@ -189,7 +189,7 @@
 }
 .msg-input:focus {
   border-color: var(--ce-blue);
-  background: white;
+  background: var(--ce-surface);
   box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
 }
 .msg-input::placeholder { color: var(--text-xlight); }

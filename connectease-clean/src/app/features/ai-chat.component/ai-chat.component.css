@@ -24,7 +24,7 @@
 
 /* ── Chat Container ──────────────────────────────────── */
 .chat-container {
-  flex: 5; background: white;
+  flex: 5; background: var(--ce-surface);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
   display: flex; flex-direction: column;
@@ -33,7 +33,7 @@
 }
 
 .chat-header {
-  background: linear-gradient(135deg, #7C3AED, #4F46E5);
+  background: linear-gradient(135deg, var(--ce-secondary), var(--ce-primary));
   color: white; padding: 1rem 1.5rem;
   display: flex; align-items: center; gap: 1rem;
   flex-shrink: 0;
@@ -86,7 +86,7 @@
   box-shadow: var(--shadow-xs);
 }
 .ai .bubble {
-  background: white; color: var(--text-dark);
+  background: var(--ce-surface); color: var(--text-dark);
   border: 1px solid var(--border-color);
   border-top-left-radius: 4px;
 }
@@ -97,7 +97,7 @@
 
 /* ── Input Area ──────────────────────────────────────── */
 .chat-input-area {
-  padding: 1rem 1.5rem; background: white;
+  padding: 1rem 1.5rem; background: var(--ce-surface);
   border-top: 1px solid var(--border-color);
   display: flex; gap: 0.75rem; align-items: center;
   flex-shrink: 0;
@@ -112,7 +112,7 @@
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 .chat-input-area input:focus {
-  background: white;
+  background: var(--ce-surface);
   border-color: var(--ce-purple);
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
@@ -136,7 +136,7 @@
 
 /* ── Results Container ───────────────────────────────── */
 .results-container {
-  flex: 6; background: white;
+  flex: 6; background: var(--ce-surface);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
   display: flex; flex-direction: column;
@@ -169,7 +169,7 @@
 /* ── Service Cards ───────────────────────────────────── */
 .service-card {
   display: flex; gap: 1.25rem; padding: 1rem;
-  background: white;
+  background: var(--ce-surface);
   border: 1.5px solid var(--border-color);
   border-radius: var(--radius-md); cursor: pointer;
   transition: transform 0.22s var(--ease-bounce), box-shadow 0.22s ease, border-color 0.22s;
@@ -178,7 +178,7 @@
 .service-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 10px 24px -6px rgba(139, 92, 246, 0.15);
-  border-color: #C4B5FD;
+  border-color: var(--ce-secondary);
 }
 .service-card img {
   width: 108px; height: 108px; object-fit: cover;
@@ -191,9 +191,10 @@
 .card-title-row { display: flex; justify-content: space-between; align-items: flex-start; }
 .card-title-row h3 { margin: 0; font-size: 1rem; color: var(--text-dark); font-weight: 700; }
 .verified-badge {
-  background: #EEF2FF; color: #4338CA;
+  background: var(--ce-primary-soft); color: var(--ce-primary);
   padding: 0.2rem 0.7rem; border-radius: var(--radius-sm);
   font-size: 0.7rem; font-weight: 600; flex-shrink: 0;
+  border: 1px solid var(--ce-primary-100);
 }
 .location {
   color: var(--text-light); font-size: 0.85rem;

@@ -3,7 +3,7 @@
   position: fixed;
   bottom: 24px; right: 24px;
   width: 350px;
-  background: white;
+  background: var(--ce-surface);
   border-radius: 20px;
   box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18), 0 4px 16px rgba(15, 23, 42, 0.08);
   border: 1px solid var(--border-color);
@@ -45,7 +45,7 @@
 }
 
 .msg-bubble {
-  background: white; padding: 10px 14px;
+  background: var(--ce-surface); padding: 10px 14px;
   border-radius: 14px;
   border: 1px solid var(--border-color);
   font-size: 14px; color: var(--text-dark); line-height: 1.55;
@@ -68,7 +68,7 @@
 .chat-footer {
   display: flex; align-items: center; gap: 8px;
   padding: 12px 14px;
-  border-top: 1px solid var(--border-color); background: white;
+  border-top: 1px solid var(--border-color); background: var(--ce-surface);
   flex-shrink: 0;
 }
 .chat-footer input {
@@ -81,7 +81,7 @@
 }
 .chat-footer input:focus {
   border-color: var(--ce-blue);
-  background: white;
+  background: var(--ce-surface);
   box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
 }
 
