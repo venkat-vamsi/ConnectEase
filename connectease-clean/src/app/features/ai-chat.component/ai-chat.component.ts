@@ -30,7 +30,6 @@ export class AiChatComponent implements OnInit {
   currentCards: ListingCardDTO[] = [];
 
   ngOnInit() {
-    // If they came from the Home page search bar, grab the query and run it instantly
     this.route.queryParams.subscribe(params => {
       const initialQuery = params['q'];
       if (initialQuery) {
@@ -43,22 +42,18 @@ export class AiChatComponent implements OnInit {
     const query = overrideQuery || this.userInput;
     if (!query.trim() || this.isLoading) return;
 
-    // 1. Add user message to UI
     this.messages.push({ sender: 'user', text: query });
     this.userInput = '';
     this.isLoading = true;
 
-    // 2. Clear old cards while loading
     this.currentCards = [];
 
-    // 3. Build history: skip initial greeting, exclude current user message just pushed
-    const prior = this.messages.slice(1, -1); // skip AI greeting + skip current user msg
+    const prior = this.messages.slice(1, -1);
     const history: ChatTurn[] = prior.slice(-6).map(m => ({
       role: (m.sender === 'user' ? 'user' : 'model') as 'user' | 'model',
       text: m.text
     }));
 
-    // 4. Call Spring Boot with history for context
     this.aiService.askAssistant(query, history).subscribe({
       next: (response) => {
         this.messages.push({ sender: 'ai', text: response.aiMessage });
@@ -72,7 +67,15 @@ export class AiChatComponent implements OnInit {
     });
   }
 
-  // Helper to keep chat scrolled down
+  // --- NEW: Helper method to format AI markdown text to HTML ---
+  formatMessage(text: string): string {
+    if (!text) return '';
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Converts **text** to bold
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')             // Converts *text* to italic
+      .replace(/\n/g, '<br>');                          // Converts newlines to actual line breaks
+  }
+
   private scrollToBottom() {
     setTimeout(() => {
       const chatContainer = document.getElementById('chat-history');

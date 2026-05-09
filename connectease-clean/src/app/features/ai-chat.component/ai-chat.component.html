@@ -18,7 +18,7 @@
         @for (msg of messages; track $index) {
           <div class="message-wrapper" [ngClass]="msg.sender">
             @if (msg.sender === 'ai') { <div class="avatar-small">AI</div> }
-            <div class="bubble">{{ msg.text }}</div>
+            <div class="bubble" [innerHTML]="formatMessage(msg.text)"></div>
           </div>
         }
         
