@@ -32,7 +32,7 @@
 
 /* ── Gallery ─────────────────────────────────────────── */
 .gallery-card {
-  background: white;
+  background: var(--ce-surface);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border-color);
   overflow: hidden; margin-bottom: 22px;
@@ -66,7 +66,7 @@
 
 /* ── Info Card ───────────────────────────────────────── */
 .info-card {
-  background: white;
+  background: var(--ce-surface);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border-color);
   padding: 30px; margin-bottom: 22px;
@@ -92,7 +92,7 @@
 .stars-display { display: flex; gap: 2px; }
 .star-full { color: #F59E0B; font-size: 18px; }
 .star-half { color: #F59E0B; font-size: 18px; opacity: 0.6; }
-.star-empty { color: #CBD5E1; font-size: 18px; }
+.star-empty { color: var(--border-hover); font-size: 18px; }
 .avg-num { font-size: 18px; font-weight: 800; color: var(--text-dark); }
 .review-count { font-size: 14px; color: var(--text-light); }
 
@@ -115,7 +115,7 @@
 
 /* ── Reviews ─────────────────────────────────────────── */
 .reviews-card {
-  background: white;
+  background: var(--ce-surface);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border-color); padding: 30px;
   box-shadow: var(--shadow-sm);
@@ -137,7 +137,7 @@
 .rev-stars { display: flex; gap: 2px; margin-top: 3px; }
 .star-sm-full { color: #F59E0B; font-size: 13px; }
 .star-sm-half { color: #F59E0B; font-size: 13px; opacity: 0.6; }
-.star-sm-empty { color: #CBD5E1; font-size: 13px; }
+.star-sm-empty { color: var(--border-hover); font-size: 13px; }
 .rev-text { margin: 0; font-size: 14px; color: var(--text-light); line-height: 1.65; padding-left: 52px; }
 .no-reviews { color: var(--text-light); font-size: 14px; text-align: center; padding: 24px 0; }
 
@@ -147,7 +147,7 @@
 
 .star-picker-row { display: flex; align-items: center; gap: 4px; margin-bottom: 14px; }
 .star-pick {
-  font-size: 30px; cursor: pointer; color: #CBD5E1;
+  font-size: 30px; cursor: pointer; color: var(--border-hover);
   transition: color 0.15s, transform 0.18s var(--ease-bounce);
 }
 .star-pick:hover { transform: scale(1.2); }
@@ -169,7 +169,7 @@
 
 /* ── Sidebar Cards ───────────────────────────────────── */
 .action-card {
-  background: white;
+  background: var(--ce-surface);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border-color); padding: 26px;
   margin-bottom: 22px; text-align: center;
@@ -208,7 +208,7 @@
 .btn-chat:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; transform: none; }
 
 .own-service-note {
-  padding: 14px; background: #F0FDF4;
+  padding: 14px; background: var(--success-bg);
   border: 1px solid #BBF7D0; border-radius: var(--radius-md);
   color: #16A34A; font-size: 14px; font-weight: 500; text-align: center;
 }
@@ -224,7 +224,7 @@
 .btn-outline:hover { background: var(--ce-blue-50); transform: translateY(-1px); }
 
 .vendor-card {
-  background: white;
+  background: var(--ce-surface);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border-color); padding: 26px;
   text-align: center;

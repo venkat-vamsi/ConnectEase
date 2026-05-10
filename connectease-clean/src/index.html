@@ -2,10 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>ConnectEase</title>
+  <title>ConnectEase — Trusted relocation, made effortless</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ConnectEase helps newcomers settle into Chennai with verified PGs, food, electricians, plumbers, cleaners and laundry — guided by an intelligent AI assistant.">
+  <meta name="theme-color" content="#2563EB" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="alternate icon" type="image/x-icon" href="favicon.ico">
   <script>
+    // Apply persisted theme as early as possible to avoid flash of wrong theme
+    (function () {
+      try {
+        var saved = localStorage.getItem('ce-theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = (saved === 'light' || saved === 'dark') ? saved : (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (_) {}
+    })();
     // Polyfill for sockjs-client which uses Node.js 'global' variable
     if (typeof global === 'undefined') { window.global = window; }
     if (typeof process === 'undefined') { window.process = { env: {} }; }
