@@ -256,13 +256,15 @@
         <div class="form-section">
           <h3 class="form-section-title">Images</h3>
           <div class="tag-input-row">
-            <input type="text" [(ngModel)]="newImageUrl" placeholder="Paste image URL..." />
+            <input type="text" [(ngModel)]="newImageUrl" placeholder="Paste image URL..."
+                   (keyup.enter)="addImage()" />
             <button class="btn-add" (click)="addImage()">Add</button>
           </div>
           <div class="image-preview-grid">
             @for (img of serviceForm.images; track $index; let i = $index) {
               <div class="img-thumb-wrap" [class.primary]="img.isPrimary">
-                <img [src]="img.url" alt="preview" (error)="removeImage(i)" />
+                <img [src]="img.url" alt="preview"
+                     (error)="$any($event.target).src = 'assets/placeholder.jpg'" />
                 <div class="img-controls">
                   <button (click)="setPrimary(i)" [disabled]="img.isPrimary" class="btn-primary-tag">
                     {{ img.isPrimary ? '★ Primary' : 'Set Primary' }}

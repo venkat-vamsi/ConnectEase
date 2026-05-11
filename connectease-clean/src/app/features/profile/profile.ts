@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, HostListener, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -43,6 +43,13 @@ export class ProfileComponent implements OnInit {
   pwError = '';
 
   deleteConfirm = false;
+  imageZoom = false;
+
+  openImageZoom() { if (this.profile?.image) this.imageZoom = true; }
+  closeImageZoom() { this.imageZoom = false; }
+
+  @HostListener('document:keydown.escape')
+  onEscape() { if (this.imageZoom) this.closeImageZoom(); }
 
   ngOnInit() {
     const uid = this.authService.getUid();
@@ -57,6 +64,7 @@ export class ProfileComponent implements OnInit {
         this.profile = res;
         this.editForm = { fullName: res.fullName, phoneNo: res.phoneNo || '', image: res.image || '' };
         localStorage.setItem('fullName', res.fullName);
+        this.authService.setImage(res.image || '');
         this.loading = false;
       },
       error: () => { this.loading = false; }
@@ -77,6 +85,7 @@ export class ProfileComponent implements OnInit {
       next: (res) => {
         this.profile = res;
         localStorage.setItem('fullName', res.fullName);
+        this.authService.setImage(res.image || '');
         this.editSuccess = 'Profile updated successfully!';
         this.editSubmitting = false;
         setTimeout(() => { this.editSuccess = ''; }, 3000);

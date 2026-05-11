@@ -2,21 +2,16 @@
 
   <!-- ── HERO ─────────────────────────────────────────── -->
   <section class="hero">
-    <div class="hero-bg" aria-hidden="true">
-      <span class="orb orb-a"></span>
-      <span class="orb orb-b"></span>
-      <span class="orb orb-c"></span>
-    </div>
-
+    <div class="hero-decor" aria-hidden="true"></div>
     <div class="hero-inner">
       <div class="hero-copy">
         <span class="ai-badge">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6L12 2zm6 12l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z"/></svg>
+          <span class="badge-dot"></span>
           AI-Powered Migration Assistance · Chennai
         </span>
 
         <h1 class="hero-title">
-          Settle into Chennai —<br>
+          Settle into Chennai —
           <span class="gradient-text">the easy, trusted way.</span>
         </h1>
 
@@ -33,79 +28,24 @@
           <input
             #searchInput
             type="text"
-            placeholder="Try: ‘Find PG near OMR under 10k’ or ‘Need plumber in Adyar’"
+            placeholder="Try: 'Find PG near OMR under 10k' or 'Need plumber in Adyar'"
             (keyup.enter)="startAiSearch(searchInput.value)">
           <button type="submit" class="btn-primary" (click)="startAiSearch(searchInput.value)">
             Search
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="5" y1="12" x2="19" y2="12"/>
-              <polyline points="12 5 19 12 12 19"/>
-            </svg>
           </button>
         </form>
 
-        <p class="search-hint">Our AI understands your context — area, budget, language — and finds the best matches.</p>
-      </div>
-
-      <!-- Hero illustration (replaces stock-emoji feel) -->
-      <div class="hero-art" aria-hidden="true">
-        <svg viewBox="0 0 520 460" xmlns="http://www.w3.org/2000/svg" role="img">
-          <defs>
-            <linearGradient id="card-grad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="var(--ce-primary)"/>
-              <stop offset="100%" stop-color="var(--ce-secondary)"/>
-            </linearGradient>
-            <linearGradient id="accent-grad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="var(--ce-accent)"/>
-              <stop offset="100%" stop-color="var(--ce-accent-strong)"/>
-            </linearGradient>
-            <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
-              <feOffset dy="10" result="off"/>
-              <feComponentTransfer><feFuncA type="linear" slope="0.18"/></feComponentTransfer>
-              <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-
-          <!-- Background blob -->
-          <path d="M70 230 C70 90 230 50 320 70 C430 95 470 220 460 310 C450 410 320 430 220 410 C100 385 70 360 70 230Z"
-                fill="var(--ce-primary-soft)" opacity="0.9"/>
-
-          <!-- Map pin -->
-          <g filter="url(#soft-shadow)">
-            <path d="M260 110 C218 110 188 142 188 184 C188 234 248 296 256 304 C258 306 262 306 264 304 C272 296 332 234 332 184 C332 142 302 110 260 110 Z"
-                  fill="url(#card-grad)"/>
-            <circle cx="260" cy="184" r="26" fill="#fff"/>
-            <circle cx="260" cy="184" r="12" fill="url(#accent-grad)"/>
-          </g>
-
-          <!-- Conversation card -->
-          <g filter="url(#soft-shadow)">
-            <rect x="80" y="280" width="240" height="120" rx="20" fill="var(--ce-surface)"
-                  stroke="var(--border-color)"/>
-            <circle cx="118" cy="318" r="16" fill="url(#card-grad)"/>
-            <rect x="146" y="306" width="140" height="10" rx="5" fill="var(--ce-surface-soft)"/>
-            <rect x="146" y="324" width="98" height="8" rx="4" fill="var(--ce-surface-soft)"/>
-            <rect x="100" y="350" width="200" height="34" rx="14" fill="var(--ce-primary-soft)"/>
-            <rect x="116" y="364" width="140" height="6" rx="3" fill="var(--ce-primary)"/>
-          </g>
-
-          <!-- Service tag -->
-          <g filter="url(#soft-shadow)">
-            <rect x="320" y="260" width="160" height="56" rx="18" fill="var(--ce-surface)"
-                  stroke="var(--border-color)"/>
-            <circle cx="350" cy="288" r="14" fill="url(#accent-grad)"/>
-            <rect x="372" y="276" width="86" height="8" rx="4" fill="var(--text-mid)" opacity="0.55"/>
-            <rect x="372" y="292" width="60" height="6" rx="3" fill="var(--text-light)" opacity="0.55"/>
-          </g>
-
-          <!-- Floating sparkles -->
-          <g opacity="0.7">
-            <path d="M120 130 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z" fill="url(#accent-grad)"/>
-            <path d="M420 170 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z" fill="url(#card-grad)"/>
-            <path d="M400 100 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2z" fill="url(#accent-grad)"/>
-          </g>
-        </svg>
+        <div class="hero-actions-row">
+          <a routerLink="/services" class="link-secondary">
+            Browse all services
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </a>
+          <span class="dot-sep" aria-hidden="true">·</span>
+          <a routerLink="/community" class="link-secondary subtle">Read community stories</a>
+        </div>
       </div>
     </div>
   </section>
@@ -150,11 +90,30 @@
     </div>
   </section>
 
+  <!-- ── HOW IT WORKS ─────────────────────────────────── -->
+  <section class="steps-section">
+    <header class="section-head">
+      <span class="eyebrow">How it works</span>
+      <h2>From question to settled — in three steps</h2>
+      <p>A clean, guided flow built for newcomers who don't want to spend weekends Googling.</p>
+    </header>
+    <div class="steps-grid">
+      @for (s of steps; track s.n) {
+        <article class="step-card">
+          <span class="step-num">{{ s.n }}</span>
+          <h3>{{ s.title }}</h3>
+          <p>{{ s.copy }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
   <!-- ── CATEGORIES ───────────────────────────────────── -->
   <section class="categories-section">
     <header class="section-head">
-      <h2>Browse by category</h2>
-      <p>Pick a service and we’ll show you the most trusted local providers.</p>
+      <span class="eyebrow">Categories</span>
+      <h2>Browse by what you need</h2>
+      <p>Pick a service and we'll show you the most trusted local providers.</p>
     </header>
 
     <div class="categories-grid">
