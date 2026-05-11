@@ -89,13 +89,21 @@ public class VendorService {
 
         List<ServiceEntity> services = productRepository.findByVendorUid(vendorId);
 
-        long activeListings = services.size();
+        long activeListings = services.stream()
+                .filter(s -> Boolean.TRUE.equals(s.getActive()))
+                .count();
+
         long totalViews = services.stream()
                 .mapToLong(s -> s.getTotalViews() != null ? s.getTotalViews() : 0L)
                 .sum();
 
-        double avgRating = services.stream()
+        List<Rating> allRatings = services.stream()
+                .filter(s -> s.getRatings() != null)
                 .flatMap(s -> s.getRatings().stream())
+                .collect(Collectors.toList());
+
+        long totalReviews = allRatings.size();
+        double avgRating = allRatings.stream()
                 .mapToInt(Rating::getScore)
                 .average()
                 .orElse(0.0);
@@ -104,6 +112,7 @@ public class VendorService {
                 .vendorName(vendor.getFullName())
                 .activeListings(activeListings)
                 .totalViews(totalViews)
+                .totalReviews(totalReviews)
                 .averageRating(Math.round(avgRating * 10.0) / 10.0)
                 .build();
     }
@@ -142,6 +151,31 @@ public class VendorService {
                 processedFeatures.add(featureToLink);
             }
             existing.setFeatures(processedFeatures);
+        }
+        if (updatePayload.getImages() != null) {
+            if (existing.getImages() == null) {
+                existing.setImages(new ArrayList<>());
+            } else {
+                existing.getImages().clear();
+            }
+            for (ServiceImages img : updatePayload.getImages()) {
+                img.setService(existing);
+                existing.getImages().add(img);
+            }
+        }
+        if (updatePayload.getLocation() != null) {
+            Location loc = updatePayload.getLocation();
+            if (existing.getLocation() != null) {
+                Location existingLoc = existing.getLocation();
+                if (loc.getAddress() != null) existingLoc.setAddress(loc.getAddress());
+                if (loc.getCity() != null) existingLoc.setCity(loc.getCity());
+                if (loc.getArea() != null) existingLoc.setArea(loc.getArea());
+                if (loc.getLatitude() != null) existingLoc.setLatitude(loc.getLatitude());
+                if (loc.getLongitude() != null) existingLoc.setLongitude(loc.getLongitude());
+                locationRepository.save(existingLoc);
+            } else {
+                existing.setLocation(locationRepository.save(loc));
+            }
         }
         return mapToServiceDetailsDTO(productRepository.save(existing));
     }

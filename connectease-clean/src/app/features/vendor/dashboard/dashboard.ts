@@ -202,6 +202,8 @@ export class DashboardComponent implements OnInit {
       this.formError = 'Name and price are required.';
       return;
     }
+    if (this.newImageUrl.trim()) this.addImage();
+    if (this.newFeature.trim()) this.addFeature();
     this.formSubmitting = true;
     this.formError = '';
     const payload = this.buildPayload();

@@ -61,7 +61,8 @@ public class AuthController {
 					"message", "login successful",
 					"role", user.getRole(),
 					"uid", user.getUid(),
-					"fullName", user.getFullName() != null ? user.getFullName() : ""
+					"fullName", user.getFullName() != null ? user.getFullName() : "",
+					"image", user.getImage() != null ? user.getImage() : ""
 			));
 		}
 
