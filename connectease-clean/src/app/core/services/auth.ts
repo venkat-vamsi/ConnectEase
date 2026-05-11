@@ -14,6 +14,8 @@ export class AuthService {
   getUid(): string { return localStorage.getItem('uid') || ''; }
   getRole(): string { return localStorage.getItem('role') || ''; }
   getFullName(): string { return localStorage.getItem('fullName') || ''; }
+  getImage(): string { return localStorage.getItem('image') || ''; }
+  setImage(url: string) { localStorage.setItem('image', url || ''); }
 
   signup(data: any) {
     return this.http.post(`${environment.apiUrl}/auth/signup`, data);
@@ -26,6 +28,7 @@ export class AuthService {
           localStorage.setItem('role', res.role);
           localStorage.setItem('uid', res.uid);
           localStorage.setItem('fullName', res.fullName || '');
+          localStorage.setItem('image', res.image || '');
           this.updateAuthStatus(true);
         }
       })
@@ -38,6 +41,7 @@ export class AuthService {
         localStorage.removeItem('role');
         localStorage.removeItem('uid');
         localStorage.removeItem('fullName');
+        localStorage.removeItem('image');
         this.updateAuthStatus(false);
       })
     );

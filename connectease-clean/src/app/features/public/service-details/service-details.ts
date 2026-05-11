@@ -82,10 +82,15 @@ export class ServiceDetailsComponent implements OnInit {
 
   submitReview() {
     if (!this.authService.getRole()) { this.router.navigate(['/login']); return; }
-    if (!this.newReview.score || !this.newReview.review.trim()) return;
+    if (!this.newReview.score) {
+      this.reviewError = 'Please select a star rating.';
+      setTimeout(() => { this.reviewError = ''; }, 3000);
+      return;
+    }
     this.submittingReview = true;
     this.reviewError = '';
-    this.http.post(`${environment.apiUrl}/services/${this.serviceId}/reviews`, this.newReview, { responseType: 'text' }).subscribe({
+    const payload = { score: this.newReview.score, review: this.newReview.review.trim() };
+    this.http.post(`${environment.apiUrl}/services/${this.serviceId}/reviews`, payload, { responseType: 'text' }).subscribe({
       next: () => {
         this.reviewSuccess = true;
         this.newReview = { review: '', score: 0 };
