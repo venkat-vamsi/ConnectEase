@@ -27,8 +27,6 @@ export class NavbarComponent implements OnInit {
   isVendor(): boolean { return localStorage.getItem('role') === 'vendor'; }
   getInitial(): string { return (localStorage.getItem('fullName') || 'U').charAt(0).toUpperCase(); }
   getFullName(): string { return localStorage.getItem('fullName') || 'User'; }
-  getImage(): string { return this.authService.getImage(); }
-  onImageError() { this.authService.setImage(''); }
 
   toggleDropdown() { this.showDropdown = !this.showDropdown; }
   toggleMobile() { this.mobileOpen = !this.mobileOpen; }

@@ -175,17 +175,7 @@
   font-size: 13px;
   font-weight: 700;
   flex-shrink: 0;
-  overflow: hidden;
 }
-.avatar-btn .avatar-img,
-.dh-avatar .avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  display: block;
-}
-.dh-avatar { overflow: hidden; }
 .user-name {
   font-size: 13px;
   font-weight: 600;

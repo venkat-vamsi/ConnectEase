@@ -11,13 +11,7 @@
 
       <!-- Header -->
       <div class="profile-header">
-        <div class="avatar-lg" [class.clickable]="profile.image" (click)="openImageZoom()">
-          @if (profile.image) {
-            <img [src]="profile.image" alt="profile" (error)="profile.image = null" />
-          } @else {
-            {{ profile.fullName.charAt(0) }}
-          }
-        </div>
+        <div class="avatar-lg">{{ profile.fullName.charAt(0) }}</div>
         <div class="header-info">
           <h1>{{ profile.fullName }}</h1>
           <p>{{ profile.email }}</p>
@@ -140,14 +134,6 @@
           </div>
         </div>
       }
-    </div>
-  }
-
-  @if (imageZoom && profile?.image) {
-    <div class="lightbox-backdrop" (click)="closeImageZoom()">
-      <button class="lightbox-close" (click)="closeImageZoom()" aria-label="Close">✕</button>
-      <img [src]="profile!.image!" alt="profile full" class="lightbox-img"
-           (click)="$event.stopPropagation()" />
     </div>
   }
 </div>

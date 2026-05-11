@@ -150,14 +150,11 @@
               </div>
 
               <textarea [(ngModel)]="newReview.review"
-                        placeholder="Tell others about your experience with this service... (optional)"
+                        placeholder="Tell others about your experience with this service..."
                         rows="3"></textarea>
-              @if (!newReview.score) {
-                <p class="hint-text">Please select a star rating to enable submission.</p>
-              }
               <button class="btn-primary w-100"
                       (click)="submitReview()"
-                      [disabled]="submittingReview || !newReview.score">
+                      [disabled]="submittingReview || !newReview.score || !newReview.review.trim()">
                 {{ submittingReview ? 'Submitting…' : 'Submit Review' }}
               </button>
             </div>
