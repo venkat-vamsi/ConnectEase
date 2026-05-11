@@ -38,7 +38,53 @@
   display: flex; align-items: center; justify-content: center;
   font-size: 28px; font-weight: 700; flex-shrink: 0;
   box-shadow: 0 6px 18px rgba(37,99,235,0.28);
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.18s ease;
 }
+.avatar-lg img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.avatar-lg.clickable { cursor: zoom-in; }
+.avatar-lg.clickable:hover { transform: scale(1.04); }
+
+.lightbox-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  animation: lb-fade 0.18s ease;
+  cursor: zoom-out;
+}
+@keyframes lb-fade { from { opacity: 0; } to { opacity: 1; } }
+.lightbox-img {
+  max-width: 90vw; max-height: 90vh;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  cursor: default;
+  animation: lb-pop 0.22s ease;
+}
+@keyframes lb-pop {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.lightbox-close {
+  position: absolute;
+  top: 20px; right: 24px;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.18s ease;
+}
+.lightbox-close:hover { background: rgba(255, 255, 255, 0.22); }
+
 .header-info h1 { margin: 0 0 4px; font-size: 20px; color: var(--text-dark); font-weight: 700; letter-spacing: -0.3px; }
 .header-info p { margin: 0 0 10px; color: var(--text-light); font-size: 14px; }
 .role-badge {
