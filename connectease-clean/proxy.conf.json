@@ -1,12 +1,12 @@
 {
   "/api": {
-    "target": "https://connectease-production.up.railway.app/",
+    "target": "https://connectease-af7m.onrender.com/",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
   },
   "/ws-chat": {
-    "target": "https://connectease-production.up.railway.app/",
+    "target": "https://connectease-af7m.onrender.com/",
     "secure": false,
     "ws": true
   }
