@@ -4,7 +4,7 @@ import { Observable, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface ListingCardDTO {
-  sid: number;
+  sid: string;
   name: string;
   description: string;
   price: number;
@@ -12,6 +12,8 @@ export interface ListingCardDTO {
   city?: string;
   area?: string;
   primaryImageUrl?: string;
+  averageRating?: number;
+  ratingCount?: number;
 }
 
 export interface AIChatResponse {

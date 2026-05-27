@@ -61,8 +61,12 @@
               <p class="desc">{{ card.description | slice:0:60 }}...</p>
               
               <div class="card-footer">
-                <span class="rating">⭐ 4.8 (120)</span>
-                <span class="trust">🛡️ 94% Trust</span>
+                <span class="rating">
+                  ⭐ {{ (card.averageRating && card.averageRating > 0) ? (card.averageRating | number:'1.1-1') : 'New' }}
+                  @if (card.ratingCount && card.ratingCount > 0) {
+                    ({{ card.ratingCount }})
+                  }
+                </span>
                 <span class="price">₹{{ card.price }}</span>
               </div>
             </div>
